@@ -38,7 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CreateNetwork implements MATSimAppCommand {
 
     @CommandLine.Option(names = "--osmnetwork", description = "path to osm data files", defaultValue = "rheinland-pfalz-latest.osm.pbf")
-
     private String osmnetwork;
 
     private static final Logger log = LogManager.getLogger(CreateNetwork.class);
@@ -48,7 +47,7 @@ public class CreateNetwork implements MATSimAppCommand {
 
     private static final String FILE_DIRECTORY = "C:\\Users\\ACER\\Desktop\\Uni\\Bachelorarbeit\\MATSim\\" +
             "Erstellung-Vulkaneifel\\";
-    private static final String RHEINLAND_PFALZ_OSMPBF =  FILE_DIRECTORY + "rheinland-pfalz-latest.osm.pbf";
+    //private static final String RHEINLAND_PFALZ_OSMPBF =  FILE_DIRECTORY + "rheinland-pfalz-latest.osm.pbf";
     private static final String GERMANY_OSMPBF = "C:\\Users\\ACER\\Desktop\\Uni\\Bachelorarbeit\\MATSim\\" +
             "Erstellung-Vulkaneifel\\germany-latest.osm.pbf";
     private static final String DILUTIONSHAPEFILEPATH = FILE_DIRECTORY + "dilutionArea.shp";
@@ -82,19 +81,18 @@ public class CreateNetwork implements MATSimAppCommand {
 
         log.info("Loading shape file for diluation area");
         var dilutionArea = getDilutionArea(DILUTIONSHAPEFILEPATH);
-        var veryDetailedArea = getBox(dilutionArea.getCentroid(), 20000);
+     //   var veryDetailedArea = getBox(dilutionArea.getCentroid(), 20000);
 
         log.info("Start to parse network. This might not output anything for a while");
-        var network = new OsmBicycleReader.Builder()
+        var network = new SupersonicOsmNetworkReader.Builder()
                 .setCoordinateTransformation(transformation)
-                .setLinkProperties(new ConcurrentHashMap<>(LinkProperties.createLinkProperties()))
                 .setIncludeLinkAtCoordWithHierarchy((coord, level) -> {
                     if (level <= LinkProperties.LEVEL_SECONDARY) return true;
-                    return veryDetailedArea.covers(MGC.coord2Point(coord));
+                    return dilutionArea.covers(MGC.coord2Point(coord));
                 })
                 .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
                 .build()
-                .read(RHEINLAND_PFALZ_OSMPBF);
+                .read(osmnetwork);
 
         /*
         log.info("merge networks");

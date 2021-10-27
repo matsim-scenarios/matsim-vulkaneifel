@@ -1,7 +1,7 @@
 package run;
 
 import org.matsim.application.MATSimApplication;
-import org.matsim.application.prepare.CreateTransitScheduleFromGtfs;
+import org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs;
 import picocli.CommandLine;
 import prepare.CreateNetwork;
 
@@ -15,6 +15,5 @@ public class VulkaneifelApplication extends MATSimApplication {
     public static void main(String[] args) {
         MATSimApplication.run(VulkaneifelApplication.class, args);
     }
-
 
 }
