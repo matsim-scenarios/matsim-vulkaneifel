@@ -23,8 +23,10 @@ import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.geotools.MGC;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.core.utils.gis.ShapeFileReader;
+import org.opengis.feature.simple.SimpleFeature;
 import picocli.CommandLine;
 
+import java.awt.*;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,8 +39,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CreateNetwork implements MATSimAppCommand {
 
-    @CommandLine.Option(names = "--osmnetwork", description = "path to osm data files", defaultValue = "rheinland-pfalz-latest.osm.pbf")
+    @CommandLine.Option(names = "--osmnetwork", description = "path to osm data files", required = true)
     private String osmnetwork;
+
+    @CommandLine.Option(names = "--output", description = "path to osm data files", required = true)
+    private String output;
 
     private static final Logger log = LogManager.getLogger(CreateNetwork.class);
     private static final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation("EPSG:4326", "EPSG:25832");
@@ -47,18 +52,16 @@ public class CreateNetwork implements MATSimAppCommand {
 
     private static final String FILE_DIRECTORY = "C:\\Users\\ACER\\Desktop\\Uni\\Bachelorarbeit\\MATSim\\" +
             "Erstellung-Vulkaneifel\\";
-    //private static final String RHEINLAND_PFALZ_OSMPBF =  FILE_DIRECTORY + "rheinland-pfalz-latest.osm.pbf";
     private static final String GERMANY_OSMPBF = "C:\\Users\\ACER\\Desktop\\Uni\\Bachelorarbeit\\MATSim\\" +
             "Erstellung-Vulkaneifel\\germany-latest.osm.pbf";
-    private static final String DILUTIONSHAPEFILEPATH = FILE_DIRECTORY + "dilutionArea.shp";
-    private static final String OUTPUTFILEPATH = FILE_DIRECTORY + "vulkaneifel-network.xml.gz";
+    private static final String DILUTIONSHAPEFILEPATH = "scenario/open-vulkaneifel-scenario/prepare/dilutionArea.shp";
 
     public static void main(String[] args) {
         System.exit(new CommandLine(new CreateNetwork()).execute(args));
     }
 
     @Override
-    public Integer call() throws Exception {
+    public Integer call() {
 
         /*
         var coarseLinkProperties = LinkProperties.createLinkProperties().entrySet().stream()
@@ -79,7 +82,6 @@ public class CreateNetwork implements MATSimAppCommand {
 
         log.info("done reading coarse network");
 
-        log.info("Loading shape file for diluation area");
         var dilutionArea = getDilutionArea(DILUTIONSHAPEFILEPATH);
      //   var veryDetailedArea = getBox(dilutionArea.getCentroid(), 20000);
 
@@ -109,7 +111,7 @@ public class CreateNetwork implements MATSimAppCommand {
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
 
         log.info("Finished cleaning network. Write network");
-        new NetworkWriter(network).write(OUTPUTFILEPATH);
+        new NetworkWriter(network).write(output);
 
         log.info("Finished CreateNetwork. Exiting.");
         return 0;
@@ -119,8 +121,10 @@ public class CreateNetwork implements MATSimAppCommand {
 
         log.info("Loading shape file for diluation area");
 
-        return (Geometry) ShapeFileReader.getAllFeatures(filepath).stream().
-                findFirst().orElseThrow().getDefaultGeometry();
+        var features = ShapeFileReader.getAllFeatures(filepath);
+        var feature = (SimpleFeature) features.toArray()[0];
+
+        return (Geometry) feature.getDefaultGeometry();
     }
 
     private PreparedGeometry getBox(Point center, double diameter) {
