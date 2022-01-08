@@ -3,11 +3,15 @@ package prepare;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.application.MATSimAppCommand;
+import org.matsim.contrib.dvrp.schedule.Schedule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.pt.utils.CreatePseudoNetwork;
 import org.matsim.vehicles.MatsimVehicleWriter;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
@@ -34,10 +38,8 @@ public class MergeTransitSchedules implements MATSimAppCommand {
     @CommandLine.Option(names = "--vehicles", arity = "1...*", description = "input matsim transit vehicles")
     private List<Path> transitVehicles;
 
-/*
     @CommandLine.Option(names = "--network", description = "path to base network file", required = true)
     private String network;
-*/
     @CommandLine.Option(names = "--output", description = "output file path")
     private String output;
 
@@ -51,7 +53,7 @@ public class MergeTransitSchedules implements MATSimAppCommand {
     public Integer call() throws Exception {
 
         Config emptyConfig = ConfigUtils.createConfig();
-  //      emptyConfig.network().setInputFile(network);
+        emptyConfig.network().setInputFile(network);
 
         if(transitSchedules.size() != transitVehicles.size()){
             log.info("There are more or less transit schedules than vehicles!");
@@ -74,8 +76,13 @@ public class MergeTransitSchedules implements MATSimAppCommand {
 
         var finalVehicles = mergeVehicles(vehicles);
 
+        var finalNetwork = mergeScheduleWithNetwork(emptyConfig, finalSchedule);
+
         //write finalSchedule to file
         new TransitScheduleWriter(finalSchedule).writeFile(output + "/transitSchedule.xml.gz");
+
+        //write finalNetwork to file
+        new NetworkWriter(finalNetwork).write(output + "/network_with_pt.xml.gz");
 
         //write finalVehicles to file
         new MatsimVehicleWriter(finalVehicles).writeFile(output + "/transitVehicles.xml.gz");
@@ -189,5 +196,18 @@ public class MergeTransitSchedules implements MATSimAppCommand {
         config.transit().setVehiclesFile(pathToTransitVehicles.toString());
 
         return ScenarioUtils.loadScenario(config).getTransitVehicles();
+    }
+
+    private static Network mergeScheduleWithNetwork(Config config, TransitSchedule transitSchedule){
+
+        //note that config already contains network filepath
+        var scenario = new ScenarioUtils.ScenarioBuilder(config)
+                .setTransitSchedule(transitSchedule)
+                .build();
+
+        //creates pseudo network for pt
+        new CreatePseudoNetwork(scenario.getTransitSchedule(), scenario.getNetwork(), "pt_", 0.1, 100000.0).createNetwork();
+
+        return scenario.getNetwork();
     }
 }
