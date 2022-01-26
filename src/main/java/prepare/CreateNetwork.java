@@ -1,22 +1,17 @@
 package prepare;
 
-import com.google.common.collect.Streams;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.locationtech.jts.geom.Coordinate;
+import org.geotools.geometry.jts.Geometries;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.prep.PreparedGeometry;
-import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.application.MATSimAppCommand;
 import org.matsim.contrib.osm.networkReader.LinkProperties;
-import org.matsim.contrib.osm.networkReader.OsmBicycleReader;
 import org.matsim.contrib.osm.networkReader.OsmTags;
 import org.matsim.contrib.osm.networkReader.SupersonicOsmNetworkReader;
-import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
@@ -26,10 +21,14 @@ import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;
 import picocli.CommandLine;
 
-import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @CommandLine.Command(
         name="network",
@@ -45,16 +44,16 @@ public class CreateNetwork implements MATSimAppCommand {
     @CommandLine.Option(names = "--output", description = "path to osm data files", required = true)
     private String output;
 
+    @CommandLine.Option(names = "--detailedArea", description = "path to shape that covers detailed network")
+    private String detailedArea;
+
+    @CommandLine.Option(names = "--veryDetailedArea", description = "path to shape that covers very detailed network", required = true)
+    private String veryDetailedArea;
+
     private static final Logger log = LogManager.getLogger(CreateNetwork.class);
     private static final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation("EPSG:4326", "EPSG:25832");
     private static final Set<String> carRideBike = Set.of(TransportMode.car, TransportMode.ride, TransportMode.bike);
     private static final Set<String> carRide = Set.of(TransportMode.car, TransportMode.ride);
-
-    private static final String FILE_DIRECTORY = "C:\\Users\\ACER\\Desktop\\Uni\\Bachelorarbeit\\MATSim\\" +
-            "Erstellung-Vulkaneifel\\";
-    private static final String GERMANY_OSMPBF = "C:\\Users\\ACER\\Desktop\\Uni\\Bachelorarbeit\\MATSim\\" +
-            "Erstellung-Vulkaneifel\\germany-latest.osm.pbf";
-    private static final String DILUTIONSHAPEFILEPATH = "scenario/open-vulkaneifel-scenario/prepare/dilutionArea.shp";
 
     public static void main(String[] args) {
         System.exit(new CommandLine(new CreateNetwork()).execute(args));
@@ -63,82 +62,91 @@ public class CreateNetwork implements MATSimAppCommand {
     @Override
     public Integer call() {
 
-        /*
-        var coarseLinkProperties = LinkProperties.createLinkProperties().entrySet().stream()
-                .filter(entry -> entry.getValue().getHierarchyLevel() <= LinkProperties.LEVEL_PRIMARY)
-                .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
+        //load veryDetailedArea geometry
+        log.info("reading in very detailed area file");
+        var veryDetailedAreaGeometries = getGeometries(veryDetailedArea);
 
-        log.info("reading in coarse network");
-        var germanyNetwork = new SupersonicOsmNetworkReader.Builder()
-                .setCoordinateTransformation(transformation)
-                .setLinkProperties(coarseLinkProperties)
-                .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
-                .build()
-                .read(GERMANY_OSMPBF);
+        log.info("done reading shape file");
 
+        List<Geometry> detailedAreaGeometries = getGeometries(detailedArea);
 
-         */
-
-
-        log.info("done reading coarse network");
-
-        var dilutionArea = getDilutionArea(DILUTIONSHAPEFILEPATH);
-     //   var veryDetailedArea = getBox(dilutionArea.getCentroid(), 20000);
 
         log.info("Start to parse network. This might not output anything for a while");
         var network = new SupersonicOsmNetworkReader.Builder()
                 .setCoordinateTransformation(transformation)
                 .setIncludeLinkAtCoordWithHierarchy((coord, level) -> {
-                    if (level <= LinkProperties.LEVEL_SECONDARY) return true;
-                    return dilutionArea.covers(MGC.coord2Point(coord));
+                    if(level == LinkProperties.LEVEL_MOTORWAY) return true;
+
+                    if (isInDetailedArea(detailedAreaGeometries, coord, level)) return true;
+                    return veryDetailedAreaGeometries.stream()
+                            .anyMatch(geometry -> geometry.covers(MGC.coord2Point(coord)));
                 })
                 .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
                 .build()
                 .read(osmnetwork);
+/*
+        Network output;
 
-        /*
-        log.info("merge networks");
-        var network = Streams.concat(germanyNetwork.getLinks().values().stream(), rheinlandPfalzNetwork.getLinks().values().stream())
-               .collect(NetworkUtils.getCollector());
-        log.info("just kidding");
+        if(coarsenetwork != null){
 
+            var coarseLinkProperties = LinkProperties.createLinkProperties().entrySet().stream()
+                    .filter(entry -> entry.getValue().getHierarchyLevel() <= LinkProperties.LEVEL_PRIMARY)
+                    .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
 
-         */
+            log.info("reading in coarse network");
+            var germanyNetwork = new SupersonicOsmNetworkReader.Builder()
+                    .setCoordinateTransformation(transformation)
+                    .setLinkProperties(coarseLinkProperties)
+                    .setIncludeLinkAtCoordWithHierarchy(((coord, level) -> level == LinkProperties.LEVEL_PRIMARY))
+                    .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
+                    .build()
+                    .read(coarsenetwork);
 
+            log.info("done reading coarse network");
+
+            log.info("merge networks");
+            output = Streams.concat(germanyNetwork.getLinks().values().stream(), network.getLinks().values().stream())
+                    .collect(NetworkUtils.getCollector(new NetworkConfigGroup()));
+            log.info("just kidding");
+        } else {
+
+            output = network;
+        }
+ */
         log.info("Finished parsing network. Start Network cleaner.");
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.car));
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.ride));
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
 
         log.info("Finished cleaning network. Write network");
-        new NetworkWriter(network).write(output);
+        new NetworkWriter(network).write(this.output);
 
         log.info("Finished CreateNetwork. Exiting.");
         return 0;
     }
 
-    private static Geometry getDilutionArea(String filepath){
+    private static List<Geometry> getGeometries(String path){
 
-        log.info("Loading shape file for diluation area");
+        if(path == null) {
 
-        var features = ShapeFileReader.getAllFeatures(filepath);
-        var feature = (SimpleFeature) features.toArray()[0];
+            log.info("Path to geometry has not been initialized. Returning null...");
+            return null;
+        }
 
-        return (Geometry) feature.getDefaultGeometry();
+        return ShapeFileReader.getAllFeatures(path).stream()
+                .map(simpleFeature -> (Geometry) simpleFeature.getDefaultGeometry())
+                .collect(Collectors.toList());
     }
 
-    private PreparedGeometry getBox(Point center, double diameter) {
+    private static boolean isInDetailedArea(List<Geometry> detailedArea, Coord coord, int level){
 
-        var left = center.getX() - diameter / 2;
-        var right = center.getX() + diameter / 2;
-        var top = center.getY() + diameter / 2;
-        var bottom = center.getY() - diameter / 2;
+        if (detailedArea == null) return false;
 
-        var geometry = new GeometryFactory().createPolygon(new Coordinate[]{
-                new Coordinate(left, top), new Coordinate(right, top), new Coordinate(right, bottom), new Coordinate(left, bottom), new Coordinate(left, top)
-        });
+        if(level == LinkProperties.LEVEL_PRIMARY){
 
-        return new PreparedGeometryFactory().create(geometry);
+            return detailedArea.stream()
+                    .anyMatch(geometry -> geometry.covers(MGC.coord2Point(coord)));
+        } else return false;
     }
 
     private void setAllowedMode(Link link, Map<String, String> tags) {
@@ -154,5 +162,29 @@ public class CreateNetwork implements MATSimAppCommand {
 
         var highwayType = tags.get(OsmTags.HIGHWAY);
         return highwayType == null || highwayType.equals(OsmTags.MOTORWAY) || highwayType.equals(OsmTags.MOTORWAY_LINK) || highwayType.equals(OsmTags.TRUNK) || highwayType.equals(OsmTags.TRUNK_LINK);
+    }
+
+    private String downloadGermanyLatestOsmPbf(){
+
+        String filename = "osm/network.osm.pbf";
+        URL germanyOSM;
+        int count = 0;
+
+        while(true){
+
+            try{
+                log.info("Try to open URL");
+                germanyOSM = new URL("http://download.geofabrik.de/europe/germany-latest.osm.pbf");
+                FileUtils.copyURLToFile(germanyOSM, new File(filename));
+                break;
+
+            } catch (IOException e){
+
+                e.printStackTrace();
+                if(count++ > 4) return null;
+            }
+        }
+
+        return filename;
     }
 }
