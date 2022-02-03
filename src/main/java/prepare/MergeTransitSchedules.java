@@ -79,7 +79,9 @@ public class MergeTransitSchedules implements MATSimAppCommand {
 
         var finalVehicles = mergeVehicles(vehicles);
 
-        Scenario scenario = mergeScheduleWithNetwork(emptyConfig, NetworkUtils.readTimeInvariantNetwork(network), completeSchedule);
+        emptyConfig.network().setInputFile(network);
+
+        Scenario scenario = mergeScheduleWithNetwork(emptyConfig, NetworkUtils.readNetwork(network, emptyConfig), completeSchedule);
 
         //write finalSchedule to file
         new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(output + "/transitSchedule.xml.gz");
