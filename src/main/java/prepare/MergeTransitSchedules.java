@@ -43,6 +43,10 @@ public class MergeTransitSchedules implements MATSimAppCommand {
 
     @CommandLine.Option(names = "--network", description = "path to base network file", required = true)
     private String network;
+
+    @CommandLine.Option(names = "--name", description = "name of the scenario", required = true)
+    private String name;
+
     @CommandLine.Option(names = "--output", description = "output file path")
     private String output;
 
@@ -84,13 +88,13 @@ public class MergeTransitSchedules implements MATSimAppCommand {
         Scenario scenario = mergeScheduleWithNetwork(emptyConfig, NetworkUtils.readNetwork(network, emptyConfig), completeSchedule);
 
         //write finalSchedule to file
-        new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(output + "/transitSchedule.xml.gz");
+        new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(output + "/" + name + "-transitSchedule.xml.gz");
 
         //write finalNetwork to file
-        new NetworkWriter(scenario.getNetwork()).write(output + "/network_with_pt.xml.gz");
+        new NetworkWriter(scenario.getNetwork()).write(output + "/" + name + "-network-with-pt.xml.gz");
 
         //write finalVehicles to file
-        new MatsimVehicleWriter(finalVehicles).writeFile(output + "/transitVehicles.xml.gz");
+        new MatsimVehicleWriter(finalVehicles).writeFile(output + "/" + name + "-transitVehicles.xml.gz");
 
         return 0;
     }
