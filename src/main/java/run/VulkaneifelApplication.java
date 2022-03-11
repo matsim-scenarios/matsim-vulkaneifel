@@ -11,6 +11,7 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import picocli.CommandLine;
 import prepare.CreateNetwork;
+import prepare.CreateRegionalTrainLine;
 import prepare.MergeTransitSchedules;
 import prepare.PopulationFilter;
 
@@ -18,8 +19,8 @@ import java.util.List;
 
 @CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version="1.0")
 @MATSimApplication.Prepare({
-        CreateNetwork.class, CreateTransitScheduleFromGtfs.class, MergeTransitSchedules.class, TrajectoryToPlans.class,
-        CleanPopulation.class, ResolveGridCoordinates.class, DownSamplePopulation.class, PopulationFilter.class
+        CreateNetwork.class, CreateTransitScheduleFromGtfs.class, CreateRegionalTrainLine.class, MergeTransitSchedules.class,
+        TrajectoryToPlans.class, CleanPopulation.class, ResolveGridCoordinates.class, DownSamplePopulation.class, PopulationFilter.class
 })
 
 public class VulkaneifelApplication extends MATSimApplication {

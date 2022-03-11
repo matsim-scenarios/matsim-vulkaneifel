@@ -1,8 +1,10 @@
 package prepare;
 
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.application.MATSimAppCommand;
 import org.matsim.core.config.Config;
@@ -18,6 +20,13 @@ import picocli.CommandLine;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+@CommandLine.Command(
+        name = "create-train-line",
+        description = "Creates regional train line between Cologne and Trier",
+        showDefaultValues = true,
+        mixinStandardHelpOptions = true
+)
 
 public class CreateRegionalTrainLine implements MATSimAppCommand {
 
@@ -53,64 +62,28 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
         Config config = ConfigUtils.createConfig();
         config.transit().setTransitScheduleFile(schedule);
+        config.transit().setVehiclesFile(vehicles);
 
         var networkWithPt = NetworkUtils.readNetwork(network, config);
 
         var scenario = ScenarioUtils.loadScenario(config);
 
-        var transitSchedule = scenario.getTransitSchedule();
+        var originalSchedule = scenario.getTransitSchedule();
+        var originalVehicles = scenario.getVehicles();
 
-        var busLine = transitSchedule.getTransitLines().get(id);
+        var trainSchedule = createTrainSchedule(originalSchedule, originalVehicles, networkWithPt, id);
 
-        var trainRoutes = createTrainRoutes(
-                busLine.getRoutes().values(),
-                networkWithPt
-        );
-
-        var factory = transitSchedule.getFactory();
-
-        //creates empty transit schedule for the new train line
-        var trainSchedule = factory.createTransitSchedule();
-
-        var trainLine = factory.createTransitLine(Id.create("RB26---edit", TransitLine.class));
-        trainLine.setName("RB26");
-
-        var trainVehicle = scenario.getVehicles();
-
-        for (var trainRoute: trainRoutes){
-
-            //collect vehicleId by findFirst because there is only one departure per route
-            var vehicleId = trainRoute
-                    .getDepartures()
-                    .values()
-                    .stream()
-                    .map(Departure::getVehicleId)
-                    .findFirst()
-                    .get();
-
-            trainLine.addRoute(trainRoute);
-            trainVehicle.addVehicle(
-                    createTrainVehicle(vehicleId)
-            );
-        }
-
-          /*TODO
-
-        add Route CHECK!
-        add Vehicles CHECK!
-        add departures CHECK!
-         */
-
-        transitSchedule.removeTransitLine(busLine);
-        trainSchedule.addTransitLine(trainLine);
-        addFaciltiesFromTransitLine(trainSchedule, trainLine);
-
-        new TransitScheduleWriter(transitSchedule).writeFile(output + name + "-transitSchedule-edit.xml.gz");
+        new TransitScheduleWriter(originalSchedule).writeFile(output + name + "-transitSchedule-edit.xml.gz");
         new TransitScheduleWriter(trainSchedule).writeFile(output + name + "-transitSchedule-only-regional-train.xml.gz");
-        new MatsimVehicleWriter(trainVehicle).writeFile(output + "/" + name + "-transitVehicles-only-regional-train.xml.gz");
+        new MatsimVehicleWriter(originalVehicles).writeFile(output + "/" + name + "-transitVehicles-only-regional-train.xml.gz");
 
 
         return 0;
+    }
+
+    private static void removeVehicles(Vehicles vehicles){
+
+        for(var v: vehicles.getVehicles().keySet()) vehicles.removeVehicle(v);
     }
 
     private static void addFaciltiesFromTransitLine(TransitSchedule transitSchedule, TransitLine transitLine){
@@ -129,49 +102,93 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
         for(var f: facilities) transitSchedule.addStopFacility(f);
     }
 
-    private static Vehicle createTrainVehicle(Id<Vehicle> vehicleId){
+    private static List<TransitRouteStop> filterStops(List<TransitRouteStop> unfiltered){
 
-        var vehicleFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getVehicles().getFactory();
+         var keys = unfiltered.stream().map(transitRouteStop -> transitRouteStop.getStopFacility().getName()).collect(Collectors.toList());
 
-        VehicleType reRbVehicleType = vehicleFactory.createVehicleType( Id.create( "RE_RB_veh_type", VehicleType.class ) );
+         var filtered = new HashMap<String, TransitRouteStop>();
 
-        VehicleCapacity capacity = reRbVehicleType.getCapacity();
-        capacity.setSeats( 500 );
-        capacity.setStandingRoom( 600 );
-        VehicleUtils.setDoorOperationMode(reRbVehicleType, VehicleType.DoorOperationMode.serial); // first finish boarding, then start alighting
-        VehicleUtils.setAccessTime(reRbVehicleType, 1.0 / 10.0); // 1s per boarding agent, distributed on 10 doors
-        VehicleUtils.setEgressTime(reRbVehicleType, 1.0 / 10.0); // 1s per alighting agent, distributed on 10 doors
-//            scenario.getTransitVehicles().addVehicleType( reRbVehicleType );
+         for(int i = 0; i < keys.size() - 1; i ++){
 
-        return vehicleFactory.createVehicle(vehicleId, reRbVehicleType);
+             filtered.putIfAbsent(keys.get(i), unfiltered.get(i));
+        }
+
+        return new ArrayList<>(filtered.values());
     }
 
-    private static List<TransitRouteStop> createTransitRouteStop(Departure departure, List<TransitStopFacility> facilities, List<? extends Node> nodes){
+    private static List<TransitRouteStop> getAllBusLineStops(TransitLine busline){
+
+        var stops = busline
+                .getRoutes()
+                .values()
+                .stream()
+                .map(TransitRoute::getStops)
+                .reduce(new ArrayList<>(), (totalList, nextList) -> {
+
+                    if(totalList.containsAll(nextList)) return totalList;
+
+                    var newFacilities = nextList.stream()
+                            .filter(transitRouteStop -> !totalList.contains(transitRouteStop))
+                            .collect(Collectors.toList());
+
+                    totalList.addAll(nextList);
+
+                    return totalList;
+                });
+
+        //sort Facilities to ensure that order is correct, sorting by y-coordinate is possible because train route is nearly vertical
+        var filteredstops = filterStops(stops);
+        filteredstops.sort(new TransitStopComparator());
+
+        return filteredstops;
+    }
+
+    private static List<Id<Link>> getAllBusRouteLinks(TransitLine busline, Network network){
+
+        Map<Id<Link>, ? extends Link> linkMap = network.getLinks();
+
+        return busline
+                .getRoutes()
+                .values()
+                .stream()
+                .map(transitRoute -> transitRoute.getRoute().getLinkIds())
+                .reduce(new ArrayList<Id<Link>>(), (allIds, nextIds) -> {
+                    if(allIds.containsAll(nextIds)) return allIds;
+
+                    var newIds = nextIds
+                            .stream()
+                            .filter(linkId -> !allIds.contains(linkId))
+                            .collect(Collectors.toList());
+
+                    allIds.addAll(newIds);
+                    return allIds;
+                })
+                .stream()
+                .map(linkId -> linkMap.get(linkId))
+                .sorted(new LinkComparator())
+                .map(Link::getId)
+                .collect(Collectors.toList());
+    }
+
+    private static List<TransitRouteStop> createTransitRouteStop(List<TransitStopFacility> facilities,
+                                                                 List<? extends Node> nodes,
+                                                                 TransitScheduleFactory transitScheduleFactory,
+                                                                 NetworkFactory networkFactory){
 
         //note: facility.getLinkId gets the link id from the link TO the facility (depending on route direction)
         //assumes that links in list are in the right order
-        double time = departure.getDepartureTime();
         double stopTime = 120;
         double totalTraveltime = 0;
 
         if(facilities.size() != nodes.size()) throw new RuntimeException("There are either more or less facilities than nodes...");
 
         List<TransitRouteStop> stops = new ArrayList<>();
-        var transitScheduleFactory = ScenarioUtils
-                .createScenario(ConfigUtils.createConfig())
-                .getTransitSchedule()
-                .getFactory();
-
-        var networkFactory = ScenarioUtils
-                .createScenario(ConfigUtils.createConfig())
-                .getNetwork()
-                .getFactory();
 
         List<Link> ptLinks = new ArrayList<>();
 
         for(int i = 0; i < nodes.size() - 1; i ++){
 
-            if(i == 0){
+            /*if(i == 0){
 
                 Id<Link> id = Id.createLinkId("pt_edit_start");
 
@@ -184,7 +201,15 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
                 facilities.get(i + 1).setLinkId(id);
                 ptLinks.add(link);
-            }
+
+                var stop = transitScheduleFactory
+                        .createTransitRouteStopBuilder(facilities.get(0))
+                        .arrivalOffset(totalTraveltime)
+                        .departureOffset(totalTraveltime += stopTime)
+                        .build();
+
+                stops.add(stop);
+            }*/
 
             //creates pt links
 
@@ -196,12 +221,8 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
             Link link = networkFactory.createLink(id, fromNode, toNode);
             link.setFreespeed(120/3.6);
             link.setNumberOfLanes(1);
-            link.setAllowedModes(Set.of("pt"));
+            link.setAllowedModes(Set.of(TransportMode.pt));
             link.setCapacity(1000000.0);
-            link.setLength(
-                    NetworkUtils.getEuclideanDistance(fromNode.getCoord(), toNode.getCoord()) * 1.2
-                    //multiply distance with 1.2 because railway is not 100 percent straight :)
-            );
 
             facilities.get(i + 1).setLinkId(id);
             ptLinks.add(link);
@@ -213,7 +234,7 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
             var stop = transitScheduleFactory
                     .createTransitRouteStopBuilder(facilities.get(i + 1))
-                    .arrivalOffset(departure.getDepartureTime() + totalTraveltime)
+                    .arrivalOffset(totalTraveltime)
                     .departureOffset(totalTraveltime += stopTime)
                     .build();
 
@@ -224,58 +245,135 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
         return stops;
     }
 
-    private static List<TransitRoute> createTrainRoutes(Collection<TransitRoute> busRoutes, Network network){
+    private static List<TransitRouteStop> createReverseTransitRouteStop(List<TransitStopFacility> facilities, List<? extends Node> nodes, TransitScheduleFactory transitScheduleFactory, NetworkFactory networkFactory){
 
-        var factory = ScenarioUtils
-                .createScenario(ConfigUtils.createConfig())
-                .getTransitSchedule()
-                .getFactory();
+        Collections.reverse(facilities);
+        return createTransitRouteStop(facilities, nodes, transitScheduleFactory, networkFactory);
+    }
+
+    private static List<TransitRoute> createTrainRoutes(TransitLine transitLine, Vehicles vehicles, Network network, TransitScheduleFactory transitScheduleFactory){
 
         double lineFrequency = 3600.;
 
-        var busRoute = busRoutes.stream().findFirst().get();
+        List<Id<Link>> linkIds = getAllBusRouteLinks(transitLine, network);
 
-        List<Id<Link>> linkIds = busRoute.getRoute().getLinkIds();
+        var networkFactory = network.getFactory();
+        var vehiclesFactory = vehicles.getFactory();
 
-        var facilities = busRoute
-                .getStops()
+        var stops = getAllBusLineStops(transitLine);
+
+        var facilities = stops
                 .stream()
                 .map(TransitRouteStop::getStopFacility)
                 .collect(Collectors.toList());
 
-        var routeNodes = busRoute
-                .getStops()
+        var routeNodes = stops
                 .stream()
-                .map(stop -> network.getNodes().get(Id.createNodeId("pt_" + stop.getStopFacility().getId())))
+                .map(stop ->  network.getNodes().get(Id.createNodeId("pt_" + stop.getStopFacility().getId())))
                 .collect(Collectors.toList());
 
-        List<TransitRoute> trainRoutes = new ArrayList<>();
-
         final NetworkRoute trainNetworkRoute = RouteUtils.createNetworkRoute(linkIds);
+        final NetworkRoute trainNetworkRouteReverse = RouteUtils.createNetworkRoute(linkIds);
+
+        List<TransitRouteStop> trainRouteStops =  createTransitRouteStop(facilities, routeNodes, transitScheduleFactory, networkFactory);
+        List<TransitRouteStop> trainRouteReverseStops = createReverseTransitRouteStop(facilities, routeNodes, transitScheduleFactory, networkFactory);
+
+        TransitRouteImpl trainRoute = (TransitRouteImpl) transitScheduleFactory.createTransitRoute(
+                Id.create("CustomTrain--Route", TransitRoute.class),
+                trainNetworkRoute,
+                trainRouteStops,
+                "rail"
+        );
+
+        TransitRouteImpl trainRouteReverse = (TransitRouteImpl) transitScheduleFactory.createTransitRoute(
+                Id.create("CustomTrain--RouteReverse", TransitRoute.class),
+                trainNetworkRouteReverse,
+                trainRouteReverseStops,
+                "rail"
+        );
+
+        VehicleType regionalBahnVehicleType = createRegionalBahnVehicleType(vehiclesFactory);
+        vehicles.addVehicleType(regionalBahnVehicleType);
 
         for(int i = 4*3600; i < 22*3600; i += lineFrequency){
 
-            //creates route every hour from 4 am to 10 pm
-            //its a very nice Nullsymmetrie by the way
+            //creates departures every hour from 4 am to 10 pm
+            var id1 = Id.createVehicleId("CustomTrain--" + i);
+            var id2 = Id.createVehicleId("CustomTrainReverseRoute--" + i);
 
-            Departure departure = factory.createDeparture(Id.create(i, Departure.class), i);
-            departure.setVehicleId(Id.createVehicleId("CustomTrain--" + i));
+            Departure departure = transitScheduleFactory.createDeparture(Id.create(i, Departure.class), i);
+            departure.setVehicleId(id1);
+            vehicles.addVehicle(vehiclesFactory.createVehicle(id1, regionalBahnVehicleType));
 
-            List<TransitRouteStop> trainRouteStops =  createTransitRouteStop(departure, facilities, routeNodes);
-
-            TransitRouteImpl trainRoute = (TransitRouteImpl) factory.createTransitRoute(
-                    Id.create("CustomTrain--" + i, TransitRoute.class),
-                    trainNetworkRoute,
-                    trainRouteStops,
-                    "rail"
-                    );
+            Departure departure1 = transitScheduleFactory.createDeparture(Id.create(i, Departure.class), i);
+            departure.setVehicleId(id2);
+            vehicles.addVehicle(vehiclesFactory.createVehicle(id2, regionalBahnVehicleType));
 
             //add departure to route
             trainRoute.addDeparture(departure);
-            //add route to route collection
-            trainRoutes.add(trainRoute);
+            trainRouteReverse.addDeparture(departure1);
         }
 
-        return trainRoutes;
+        return List.of(trainRoute, trainRouteReverse);
+    }
+
+    private static VehicleType createRegionalBahnVehicleType(VehiclesFactory vehiclesFactory){
+
+        VehicleType reRbVehicleType = vehiclesFactory.createVehicleType( Id.create( "RE_RB_veh_type", VehicleType.class ) );
+
+        VehicleCapacity capacity = reRbVehicleType.getCapacity();
+        capacity.setSeats( 500 );
+        capacity.setStandingRoom( 600 );
+        VehicleUtils.setDoorOperationMode(reRbVehicleType, VehicleType.DoorOperationMode.serial); // first finish boarding, then start alighting
+        VehicleUtils.setAccessTime(reRbVehicleType, 1.0 / 10.0); // 1s per boarding agent, distributed on 10 doors
+        VehicleUtils.setEgressTime(reRbVehicleType, 1.0 / 10.0);
+
+        return reRbVehicleType;
+    }
+
+    private static TransitSchedule createTrainSchedule(TransitSchedule transitSchedule, Vehicles vehicles, Network networkWithPT, Id<TransitLine> id){
+
+        TransitScheduleFactory factory = transitSchedule.getFactory();
+
+        //empty vehicle container
+        removeVehicles(vehicles);
+
+        //create train line
+        var trainRoutes = createTrainRoutes(transitSchedule.getTransitLines().get(id), vehicles, networkWithPT, factory);
+        TransitLine trainLine = factory.createTransitLine(Id.create("RB26---edit", TransitLine.class));
+        trainLine.setName("RB26");
+        trainLine.addRoute(trainRoutes.get(0));
+        trainLine.addRoute(trainRoutes.get(1));
+
+        //add transit line to empty schedule
+        TransitSchedule trainSchedule = factory.createTransitSchedule();
+        trainSchedule.addTransitLine(trainLine);
+        addFaciltiesFromTransitLine(trainSchedule, trainLine);
+
+        //remove busline from original bus scheudle
+        transitSchedule.removeTransitLine(transitSchedule.getTransitLines().get(id));
+
+        return trainSchedule;
+    }
+
+    private static class TransitStopComparator implements Comparator<TransitRouteStop>{
+
+        @Override
+        public int compare(TransitRouteStop o1, TransitRouteStop o2) {
+            Double y1 = o1.getStopFacility().getCoord().getY();
+            Double y2 = o2.getStopFacility().getCoord().getY();
+
+            return y1.compareTo(y2);
+        }
+    }
+
+    private static class LinkComparator implements Comparator<Link>{
+
+        @Override
+        public int compare(Link o1, Link o2) {
+            Double y1 = o1.getCoord().getY();
+            Double y2 = o2.getCoord().getY();
+            return y1.compareTo(y2);
+        }
     }
 }
