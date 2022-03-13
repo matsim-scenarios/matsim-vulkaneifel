@@ -1,9 +1,7 @@
 package prepare;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.geotools.geometry.jts.Geometries;
 import org.locationtech.jts.geom.Geometry;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.TransportMode;
@@ -18,13 +16,8 @@ import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.geotools.MGC;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.core.utils.gis.ShapeFileReader;
-import org.opengis.feature.simple.SimpleFeature;
 import picocli.CommandLine;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,35 +77,7 @@ public class CreateNetwork implements MATSimAppCommand {
                 .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
                 .build()
                 .read(osmnetwork);
-/*
-        Network output;
 
-        if(coarsenetwork != null){
-
-            var coarseLinkProperties = LinkProperties.createLinkProperties().entrySet().stream()
-                    .filter(entry -> entry.getValue().getHierarchyLevel() <= LinkProperties.LEVEL_PRIMARY)
-                    .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            log.info("reading in coarse network");
-            var germanyNetwork = new SupersonicOsmNetworkReader.Builder()
-                    .setCoordinateTransformation(transformation)
-                    .setLinkProperties(coarseLinkProperties)
-                    .setIncludeLinkAtCoordWithHierarchy(((coord, level) -> level == LinkProperties.LEVEL_PRIMARY))
-                    .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
-                    .build()
-                    .read(coarsenetwork);
-
-            log.info("done reading coarse network");
-
-            log.info("merge networks");
-            output = Streams.concat(germanyNetwork.getLinks().values().stream(), network.getLinks().values().stream())
-                    .collect(NetworkUtils.getCollector(new NetworkConfigGroup()));
-            log.info("just kidding");
-        } else {
-
-            output = network;
-        }
- */
         log.info("Finished parsing network. Start Network cleaner.");
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.car));
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.ride));
@@ -162,29 +127,5 @@ public class CreateNetwork implements MATSimAppCommand {
 
         var highwayType = tags.get(OsmTags.HIGHWAY);
         return highwayType == null || highwayType.equals(OsmTags.MOTORWAY) || highwayType.equals(OsmTags.MOTORWAY_LINK) || highwayType.equals(OsmTags.TRUNK) || highwayType.equals(OsmTags.TRUNK_LINK);
-    }
-
-    private String downloadGermanyLatestOsmPbf(){
-
-        String filename = "osm/network.osm.pbf";
-        URL germanyOSM;
-        int count = 0;
-
-        while(true){
-
-            try{
-                log.info("Try to open URL");
-                germanyOSM = new URL("http://download.geofabrik.de/europe/germany-latest.osm.pbf");
-                FileUtils.copyURLToFile(germanyOSM, new File(filename));
-                break;
-
-            } catch (IOException e){
-
-                e.printStackTrace();
-                if(count++ > 4) return null;
-            }
-        }
-
-        return filename;
     }
 }

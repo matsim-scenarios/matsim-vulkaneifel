@@ -188,9 +188,9 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
         for(int i = 0; i < nodes.size() - 1; i ++){
 
-            /*if(i == 0){
+            if(i == 0){
 
-                Id<Link> id = Id.createLinkId("pt_edit_start");
+                /*Id<Link> id = Id.createLinkId("pt_edit_start");
 
                 Link link = networkFactory.createLink(id, nodes.get(i), nodes.get(i));
                 link.setFreespeed(120/3.6);
@@ -200,7 +200,7 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
                 link.setLength(50);
 
                 facilities.get(i + 1).setLinkId(id);
-                ptLinks.add(link);
+                ptLinks.add(link);*/
 
                 var stop = transitScheduleFactory
                         .createTransitRouteStopBuilder(facilities.get(0))
@@ -209,7 +209,7 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
                         .build();
 
                 stops.add(stop);
-            }*/
+            }
 
             //creates pt links
 
