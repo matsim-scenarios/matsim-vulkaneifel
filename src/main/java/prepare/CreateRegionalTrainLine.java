@@ -1,24 +1,29 @@
 package prepare;
 
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.application.MATSimAppCommand;
+import org.matsim.application.options.CrsOptions;
+import org.matsim.application.options.ShpOptions;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.TransitRouteImpl;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.*;
 import picocli.CommandLine;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @CommandLine.Command(
@@ -45,37 +50,42 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
     @CommandLine.Option(names = "--output", description = "output file path")
     private String output;
 
+    @CommandLine.Mixin
+    private ShpOptions shp = new ShpOptions();
+
+    @CommandLine.Mixin
+    private CrsOptions crs = new CrsOptions("EPSG:25832");
+
     public static void main(String[] args) { System.exit(new CommandLine(new CreateRegionalTrainLine()).execute(args));}
 
     @Override
     public Integer call() throws Exception {
 
-        /**
-         *
-         * script extracts and removes SEV busline form bus schedule and creates new schedule and vehicles,
-         * which contains only the regional train
+        /*
+
+          script extracts and removes SEV busline form bus schedule and creates new schedule and vehicles,
+          which contains only the regional train
+
+          still two stops in the train schedule which do NOT belong in there...
          */
 
-        String sevID = "0_SEV---1747";
+        String sevID = "SEV---1747";
 
         Id<TransitLine> id = Id.create(sevID, TransitLine.class);
 
         Config config = ConfigUtils.createConfig();
         config.transit().setTransitScheduleFile(schedule);
         config.transit().setVehiclesFile(vehicles);
+        config.network().setInputFile(network);
 
-        var networkWithPt = NetworkUtils.readNetwork(network, config);
 
         var scenario = ScenarioUtils.loadScenario(config);
 
-        var originalSchedule = scenario.getTransitSchedule();
-        var originalVehicles = scenario.getVehicles();
+        var trainSchedule = createTrainSchedule(scenario, id, shp, crs);
 
-        var trainSchedule = createTrainSchedule(originalSchedule, originalVehicles, networkWithPt, id);
-
-        new TransitScheduleWriter(originalSchedule).writeFile(output + name + "-transitSchedule-edit.xml.gz");
-        new TransitScheduleWriter(trainSchedule).writeFile(output + name + "-transitSchedule-only-regional-train.xml.gz");
-        new MatsimVehicleWriter(originalVehicles).writeFile(output + "/" + name + "-transitVehicles-only-regional-train.xml.gz");
+        new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(output + "/" + name + "-transitSchedule-edit.xml.gz");
+        new TransitScheduleWriter(trainSchedule).writeFile(output + "/" + name + "-transitSchedule-only-regional-train.xml.gz");
+        new MatsimVehicleWriter(scenario.getVehicles()).writeFile(output + "/" + name + "-transitVehicles-only-regional-train.xml.gz");
 
 
         return 0;
@@ -104,37 +114,21 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
     private static List<TransitRouteStop> filterStops(List<TransitRouteStop> unfiltered){
 
-         var keys = unfiltered.stream().map(transitRouteStop -> transitRouteStop.getStopFacility().getName()).collect(Collectors.toList());
+         var filtered = unfiltered.stream()
+                 .map(transitRouteStop -> Tuple.of(transitRouteStop.getStopFacility().getName(), transitRouteStop))
+                 .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond, (first,second) -> first));
 
-         var filtered = new HashMap<String, TransitRouteStop>();
-
-         for(int i = 0; i < keys.size() - 1; i ++){
-
-             filtered.putIfAbsent(keys.get(i), unfiltered.get(i));
-        }
 
         return new ArrayList<>(filtered.values());
     }
 
-    private static List<TransitRouteStop> getAllBusLineStops(TransitLine busline){
+    private static List<TransitRouteStop> getAllBusLineStops(List<TransitRoute> busRoutes){
 
-        var stops = busline
-                .getRoutes()
-                .values()
+        var stops = busRoutes
                 .stream()
                 .map(TransitRoute::getStops)
-                .reduce(new ArrayList<>(), (totalList, nextList) -> {
-
-                    if(totalList.containsAll(nextList)) return totalList;
-
-                    var newFacilities = nextList.stream()
-                            .filter(transitRouteStop -> !totalList.contains(transitRouteStop))
-                            .collect(Collectors.toList());
-
-                    totalList.addAll(nextList);
-
-                    return totalList;
-                });
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
         //sort Facilities to ensure that order is correct, sorting by y-coordinate is possible because train route is nearly vertical
         var filteredstops = filterStops(stops);
@@ -143,30 +137,34 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
         return filteredstops;
     }
 
-    private static List<Id<Link>> getAllBusRouteLinks(TransitLine busline, Network network){
+    private static List<Id<Link>> getAllBusRouteLinks(List<TransitRoute> busRoutes, Network network){
 
         Map<Id<Link>, ? extends Link> linkMap = network.getLinks();
 
-        return busline
-                .getRoutes()
-                .values()
+        return busRoutes
                 .stream()
                 .map(transitRoute -> transitRoute.getRoute().getLinkIds())
-                .reduce(new ArrayList<Id<Link>>(), (allIds, nextIds) -> {
-                    if(allIds.containsAll(nextIds)) return allIds;
-
-                    var newIds = nextIds
-                            .stream()
-                            .filter(linkId -> !allIds.contains(linkId))
-                            .collect(Collectors.toList());
-
-                    allIds.addAll(newIds);
-                    return allIds;
-                })
-                .stream()
-                .map(linkId -> linkMap.get(linkId))
+                .flatMap(Collection::stream)
+                .distinct()
+                .map(linkMap::get)
                 .sorted(new LinkComparator())
                 .map(Link::getId)
+                .collect(Collectors.toList());
+    }
+
+    private static List<TransitRoute> getBusRoutes(TransitLine transitLine, ShpOptions shp, CrsOptions crs){
+
+        final Predicate<Coord> filter;
+        if (shp.getShapeFile() != null) {
+            // default input is set to lat lon
+            ShpOptions.Index index = shp.createIndex(crs.getInputCRS(), "_");
+            filter = index::contains;
+        } else filter = (coord) -> true;
+
+        return transitLine.getRoutes().values().stream()
+                .filter(transitRoute -> transitRoute.getStops().stream()
+                        .map(transitRouteStop -> transitRouteStop.getStopFacility().getCoord())
+                        .anyMatch(filter))
                 .collect(Collectors.toList());
     }
 
@@ -189,18 +187,6 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
         for(int i = 0; i < nodes.size() - 1; i ++){
 
             if(i == 0){
-
-                /*Id<Link> id = Id.createLinkId("pt_edit_start");
-
-                Link link = networkFactory.createLink(id, nodes.get(i), nodes.get(i));
-                link.setFreespeed(120/3.6);
-                link.setNumberOfLanes(1);
-                link.setAllowedModes(Set.of("pt"));
-                link.setCapacity(1000000.0);
-                link.setLength(50);
-
-                facilities.get(i + 1).setLinkId(id);
-                ptLinks.add(link);*/
 
                 var stop = transitScheduleFactory
                         .createTransitRouteStopBuilder(facilities.get(0))
@@ -251,16 +237,16 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
         return createTransitRouteStop(facilities, nodes, transitScheduleFactory, networkFactory);
     }
 
-    private static List<TransitRoute> createTrainRoutes(TransitLine transitLine, Vehicles vehicles, Network network, TransitScheduleFactory transitScheduleFactory){
+    private static List<TransitRoute> createTrainRoutes(List<TransitRoute> busRoutes, Vehicles vehicles, Network network, TransitScheduleFactory transitScheduleFactory){
 
         double lineFrequency = 3600.;
 
-        List<Id<Link>> linkIds = getAllBusRouteLinks(transitLine, network);
+        List<Id<Link>> linkIds = getAllBusRouteLinks(busRoutes, network);
 
         var networkFactory = network.getFactory();
         var vehiclesFactory = vehicles.getFactory();
 
-        var stops = getAllBusLineStops(transitLine);
+        var stops = getAllBusLineStops(busRoutes);
 
         var facilities = stops
                 .stream()
@@ -269,11 +255,18 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
         var routeNodes = stops
                 .stream()
-                .map(stop ->  network.getNodes().get(Id.createNodeId("pt_" + stop.getStopFacility().getId())))
+                .map(stop ->  network.getNodes().get(
+                        /*if a facilty has more stops of different lines the stop have a suffix like .1 e.g.
+                        which is removed which .split
+                        suffix does not belong to node id*/
+                        Id.createNodeId("pt_" + stop.getStopFacility().getId().toString().split("\\.")[0])))
                 .collect(Collectors.toList());
 
         final NetworkRoute trainNetworkRoute = RouteUtils.createNetworkRoute(linkIds);
-        final NetworkRoute trainNetworkRouteReverse = RouteUtils.createNetworkRoute(linkIds);
+
+        List<Id<Link>> linkIdsReversed = new ArrayList<>(linkIds);
+        Collections.reverse(linkIdsReversed);
+        final NetworkRoute trainNetworkRouteReverse = RouteUtils.createNetworkRoute(linkIdsReversed);
 
         List<TransitRouteStop> trainRouteStops =  createTransitRouteStop(facilities, routeNodes, transitScheduleFactory, networkFactory);
         List<TransitRouteStop> trainRouteReverseStops = createReverseTransitRouteStop(facilities, routeNodes, transitScheduleFactory, networkFactory);
@@ -331,19 +324,23 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
         return reRbVehicleType;
     }
 
-    private static TransitSchedule createTrainSchedule(TransitSchedule transitSchedule, Vehicles vehicles, Network networkWithPT, Id<TransitLine> id){
+    private static TransitSchedule createTrainSchedule(Scenario scenario, Id<TransitLine> id, ShpOptions shp, CrsOptions crs){
 
+        TransitSchedule transitSchedule = scenario.getTransitSchedule();
         TransitScheduleFactory factory = transitSchedule.getFactory();
+
+        Vehicles vehicles = scenario.getVehicles();
 
         //empty vehicle container
         removeVehicles(vehicles);
 
         //create train line
-        var trainRoutes = createTrainRoutes(transitSchedule.getTransitLines().get(id), vehicles, networkWithPT, factory);
+        var busRoutes = getBusRoutes(transitSchedule.getTransitLines().get(id), shp, crs);
+        var trainRoutes = createTrainRoutes(busRoutes, vehicles, scenario.getNetwork(), factory);
         TransitLine trainLine = factory.createTransitLine(Id.create("RB26---edit", TransitLine.class));
         trainLine.setName("RB26");
-        trainLine.addRoute(trainRoutes.get(0));
-        trainLine.addRoute(trainRoutes.get(1));
+
+        for(var trainRoute: trainRoutes) trainLine.addRoute(trainRoute);
 
         //add transit line to empty schedule
         TransitSchedule trainSchedule = factory.createTransitSchedule();
@@ -360,10 +357,10 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
         @Override
         public int compare(TransitRouteStop o1, TransitRouteStop o2) {
-            Double y1 = o1.getStopFacility().getCoord().getY();
-            Double y2 = o2.getStopFacility().getCoord().getY();
+            double y1 = o1.getStopFacility().getCoord().getY();
+            double y2 = o2.getStopFacility().getCoord().getY();
 
-            return y1.compareTo(y2);
+            return Double.compare(y1,y2);
         }
     }
 
@@ -371,9 +368,9 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
         @Override
         public int compare(Link o1, Link o2) {
-            Double y1 = o1.getCoord().getY();
-            Double y2 = o2.getCoord().getY();
-            return y1.compareTo(y2);
+            double y1 = o1.getCoord().getY();
+            double y2 = o2.getCoord().getY();
+            return Double.compare(y1,y2);
         }
     }
 }
