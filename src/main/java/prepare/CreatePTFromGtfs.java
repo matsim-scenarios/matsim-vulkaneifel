@@ -132,7 +132,7 @@ public class CreatePTFromGtfs implements MATSimAppCommand {
             TransitSchedulePostProcessTools.copyEarlyDeparturesToFollowingNight(scenario.getTransitSchedule(), 6 * 3600, "copied");
         }
 
-        Network network = Files.exists(networkFile) ? NetworkUtils.readTimeInvariantNetwork(networkFile.toString()) : scenario.getNetwork();
+        Network network = Files.exists(networkFile) ? NetworkUtils.readNetwork(networkFile.toString()) : scenario.getNetwork();
 
         Scenario ptScenario = getScenarioWithPseudoPtNetworkAndTransitVehicles(network, scenario.getTransitSchedule(), "pt_");
 

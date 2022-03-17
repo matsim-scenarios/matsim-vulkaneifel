@@ -16,7 +16,8 @@ import java.util.List;
 
 @CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version="1.0")
 @MATSimApplication.Prepare({
-        CreateNetwork.class, CreateTransitScheduleFromGtfs.class, CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class,
+        CreateNetwork.class, CreatePTFromGtfs.class,
+        CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class,
         MergeTransitSchedules.class, TrajectoryToPlans.class, CleanPopulation.class, ResolveGridCoordinates.class,
         DownSamplePopulation.class, PopulationFilter.class
 })
