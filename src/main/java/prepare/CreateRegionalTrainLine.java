@@ -1,5 +1,7 @@
 package prepare;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -55,6 +57,8 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
     @CommandLine.Mixin
     private CrsOptions crs = new CrsOptions("EPSG:25832");
+
+    private static Logger log = LogManager.getLogger(CreateRegionalTrainLine.class);
 
     public static void main(String[] args) { System.exit(new CommandLine(new CreateRegionalTrainLine()).execute(args));}
 
@@ -368,8 +372,10 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 
         @Override
         public int compare(Link o1, Link o2) {
+
             double y1 = o1.getCoord().getY();
             double y2 = o2.getCoord().getY();
+
             return Double.compare(y1,y2);
         }
     }
