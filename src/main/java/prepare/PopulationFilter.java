@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 public class PopulationFilter implements MATSimAppCommand {
 
-    private static final Logger log = LogManager.getLogger(ShapePopulationFilter.class);
+    private static final Logger log = LogManager.getLogger(PopulationFilter.class);
 
     @CommandLine.Parameters(paramLabel = "INPUT", arity = "1", description = "Path to population")
     private Path input;
@@ -48,7 +48,7 @@ public class PopulationFilter implements MATSimAppCommand {
     private CrsOptions crs = new CrsOptions("EPSG:4326");
 
     public static void main(String[] args) {
-        System.exit(new CommandLine(new ShapePopulationFilter()).execute(args));
+        System.exit(new CommandLine(new PopulationFilter()).execute(args));
     }
     @Override
     public Integer call() {

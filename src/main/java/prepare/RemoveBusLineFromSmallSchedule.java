@@ -28,22 +28,23 @@ public class RemoveBusLineFromSmallSchedule implements MATSimAppCommand {
     @CommandLine.Option(names = "--output", description = "output directory", required = true)
     private String output;
 
+    @CommandLine.Option(names = "--lineId", description = "Id of SEV line", required = true)
+    private String lineId;
+
     @Override
     public Integer call() throws Exception {
-
-        String lineID = "0_SEV---1747";
 
         Config config = ConfigUtils.createConfig();
         config.transit().setTransitScheduleFile(schedule);
 
-        TransitSchedule transitSchedule = ScenarioUtils.createScenario(config).getTransitSchedule();
+        TransitSchedule transitSchedule = ScenarioUtils.loadScenario(config).getTransitSchedule();
 
-        TransitLine sevLine = transitSchedule.getTransitLines().get(Id.create(lineID, TransitLine.class));
+        TransitLine sevLine = transitSchedule.getTransitLines().get(Id.create(lineId, TransitLine.class));
 
         transitSchedule.removeTransitLine(sevLine);
 
         new TransitScheduleWriter(transitSchedule).writeFile(output + "/" + name + "-bus-schedule-without-SEV.xml.gz" );
 
-        return 1;
+        return 0;
     }
 }
