@@ -89,7 +89,7 @@ public class CreatePTFromGtfs implements MATSimAppCommand {
 
         // Output files
         File scheduleFile = new File(output, name + "-transitSchedule.xml.gz");
-        File networkPTFile = new File(output, networkFile.getFileName().toString().replace(".xml", "-with-pt.xml"));
+        File networkPTFile = new File(output, name + "-network-with-pt.xml.gz");
         File transitVehiclesFile = new File(output, name + "-transitVehicles.xml.gz");
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
