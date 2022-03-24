@@ -29,8 +29,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 
 /**
@@ -46,7 +48,7 @@ import java.util.function.Predicate;
 )
 public class CreatePTFromGtfs implements MATSimAppCommand {
 
-    private static final Logger log = LogManager.getLogger(org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs.class);
+    private static final Logger log = LogManager.getLogger(CreatePTFromGtfs.class);
 
     @CommandLine.Parameters(arity = "1..*", paramLabel = "INPUT", description = "Input GTFS zip files")
     private List<Path> gtfsFiles;
@@ -141,6 +143,35 @@ public class CreatePTFromGtfs implements MATSimAppCommand {
 
             var replaced = transitStopFacility.getName().replace("\u0016", "");
             transitStopFacility.setName(replaced);
+        }
+
+        //remove routes with less then 3 stops
+        //this should be done in the validator but somehow the schedule contains routes with less then two stops
+
+        TransitSchedule transitSchedule = ptScenario.getTransitSchedule();
+        List<TransitLine> transitLines = new ArrayList<>(transitSchedule.getTransitLines().values());
+
+        for (TransitLine transitLine : transitLines) {
+
+            //get transit line as a reference to remove route from schedule
+            TransitLine lineAsReference = transitSchedule.getTransitLines().get(transitLine.getId());
+
+            log.info("Inspecting line: "+ transitLine.getId().toString());
+
+            //filter for routes with less then 3 stops and remove them
+            var routesToRemove = transitLine.getRoutes().values().stream()
+                    .filter(transitRoute -> transitRoute.getDepartures().values().stream() //filter for departures without vehicle id
+                                .anyMatch(
+                                        departure -> departure.getVehicleId() == null
+                                )
+                    )
+                    .collect(Collectors.toList());
+
+            for (var route: routesToRemove) {
+
+                log.info("Remove route: " + route.getId().toString());
+                lineAsReference.removeRoute(route);
+            }
         }
 
 
