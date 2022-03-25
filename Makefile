@@ -5,6 +5,7 @@ BIGBUS := big-bus-schedule
 TRAIN := vulkaneifel-train
 BUS := vulkaneifel-bus
 BUS_EDIT := $(BUS)-edit
+CONFIG := config_vulkaneifel-test.xml
 
 #create network from osm.pbf
 Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz:
@@ -14,7 +15,7 @@ Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz:
 		--veryDetailedArea shp/$(SHP)\
 	
 #create big bus schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz: #Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz
+Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare pt-from-gtfs\
 		gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
 		--network $(VERSION)/temp/vulkaneifel-network.xml.gz\
@@ -35,7 +36,8 @@ Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz: #Prepare-Runs_Make/te
 		--shp dilutionArea/dilutionArea.shp\
 		--output $(VERSION)/temp
 
-Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz # Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz
+#remove sev line from small schedule
+Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz
 	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare remove-bus-line\
 		--schedule $(VERSION)/temp/$(BUS)-transitSchedule.xml.gz\
 		--name $(BUS_EDIT)\
@@ -43,7 +45,7 @@ Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz: Prep
 		--lineId SEV---1747
 		
 #create regional-train-schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz: #Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz
+Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare create-train-line	\
 		--network $(VERSION)/temp/$(BIGBUS)-network-with-pt.xml.gz	\
 		--schedule $(VERSION)/temp/$(BIGBUS)-transitSchedule.xml.gz	\
@@ -55,7 +57,7 @@ Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.
 		--output $(VERSION)/temp
 
 #create train schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz: #Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz
+Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare pt-from-gtfs\
 		gtfs/regio-s-train-gtfs-2021-11-14.zip\
         --network $(VERSION)/temp/vulkaneifel-network.xml.gz\
@@ -66,7 +68,7 @@ Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz: #Prepare-Runs_Make/
         --output $(VERSION)/temp
 
 #merge bus and train schedule together
-Prepare-Runs_Make/input/vulkaneifel-complete-schedule.xml.gz: #Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz #Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz
+Prepare-Runs_Make/input/vulkaneifel-complete-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare merge-transit-schedules\
         $(VERSION)/temp/$(TRAIN)-transitSchedule.xml.gz\
         $(VERSION)/temp/vulkaneifel-bus-edit-bus-schedule-without-SEV.xml.gz\
@@ -111,3 +113,7 @@ Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz: Prepare-Runs_Make/input/vulkan
 
 prepare: Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz
 	echo "Done, Have fun with your Vulkaneifel-Scenario ;)"
+
+run: prepare
+	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar run $(VERSION)/$(CONFIG) --config:controler.runId=$(VERSION) --output output/
+	echo "Test-run finished!"
