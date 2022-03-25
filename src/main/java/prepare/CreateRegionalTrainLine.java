@@ -299,7 +299,7 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
             vehicles.addVehicle(vehiclesFactory.createVehicle(id1, regionalBahnVehicleType));
 
             Departure departure1 = transitScheduleFactory.createDeparture(Id.create(i, Departure.class), i);
-            departure.setVehicleId(id2);
+            departure1.setVehicleId(id2);
             vehicles.addVehicle(vehiclesFactory.createVehicle(id2, regionalBahnVehicleType));
 
             //add departure to route
