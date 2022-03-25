@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -19,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class CreatePTFromGtfsTest {
 
@@ -30,12 +31,13 @@ public class CreatePTFromGtfsTest {
 
         Config config = ConfigUtils.createConfig();
 
-        String prefix = "./scenario/open-vulkaneifel-scenario/nrw-sued-rlp-saar/vulkaneifel-";
+        String prefix = "./scenario/open-vulkaneifel-scenario/nrw-sued-rlp-saar/";
 
 
         for (String path: List.of(
-                "train-transitSchedule.xml.gz",
-                "transitSchedule.xml.gz"
+                "temp/vulkaneifel-train-transitSchedule.xml.gz",
+                "temp/vulkaneifel-bus-transitSchedule.xml.gz",
+                "temp/vulkaneifel-transitSchedule-only-regional-train.xml.gz"
         )) {
             log.info("+++++++++ Start testing " + path + " +++++++++");
             config.transit().setTransitScheduleFile(prefix + path);
@@ -51,5 +53,33 @@ public class CreatePTFromGtfsTest {
                     .map(Departure::getVehicleId)
                     .forEach(Assert::assertNotNull);
         }
+    }
+
+    @Test
+    public void testIfEveryVehicleExistsInVehiclesFile(){
+
+        Config config = ConfigUtils.createConfig();
+
+        String prefix = "./scenario/open-vulkaneifel-scenario/nrw-sued-rlp-saar/";
+
+        String pathToSchedule = prefix + "temp/vulkaneifel-bus-transitSchedule.xml.gz";
+        String pathToVehicles = prefix + "temp/vulkaneifel-bus-transitVehicles.xml.gz";
+
+        config.transit().setTransitScheduleFile(pathToSchedule);
+        config.transit().setVehiclesFile(pathToVehicles);
+        Scenario scenario = ScenarioUtils.loadScenario(config);
+
+        var vehicleIds = scenario.getTransitVehicles().getVehicles().values().stream()
+                .map(Identifiable::getId)
+                .collect(Collectors.toList());
+
+        scenario.getTransitSchedule().getTransitLines().values().stream()
+                .map(TransitLine::getRoutes)
+                .flatMap(idTransitRouteMap -> idTransitRouteMap.values().stream())
+                .map(transitRoute -> transitRoute.getDepartures().values())
+                .flatMap(Collection::stream)
+                .map(Departure::getVehicleId)
+                .forEach(vehicleIdInSchedule -> assertTrue(vehicleIds.contains(vehicleIdInSchedule)));
+
     }
 }
