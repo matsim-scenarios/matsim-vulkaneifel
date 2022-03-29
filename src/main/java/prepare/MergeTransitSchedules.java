@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.application.MATSimAppCommand;
@@ -207,6 +208,12 @@ public class MergeTransitSchedules implements MATSimAppCommand {
         return ScenarioUtils.loadScenario(config).getTransitVehicles();
     }
 
+    private static void increaseLinkFreespeedIfLower(Link link, double newFreespeed) {
+        if (link.getFreespeed() < newFreespeed) {
+            link.setFreespeed(newFreespeed);
+        }
+    }
+
     private static Scenario mergeScheduleWithNetwork(Config config, Network network, TransitSchedule transitSchedule){
 
         TransitSchedule temp = transitSchedule.getFactory().createTransitSchedule();
@@ -228,8 +235,44 @@ public class MergeTransitSchedules implements MATSimAppCommand {
                 .build();
 
         //creates pseudo network for pt
-        new CreatePseudoNetwork(scenario.getTransitSchedule(), scenario.getNetwork(), "pt_", 0.1, 100000.0).createNetwork();
+        //link freespeed is set to 100 km per hour, link capacity is set to 100000 as a default value
+        new CreatePseudoNetwork(scenario.getTransitSchedule(), scenario.getNetwork(), "pt_").createNetwork();
 
+        // set link speeds and create vehicles according to pt mode
+        for (TransitLine line: scenario.getTransitSchedule().getTransitLines().values()) {
+
+            for (TransitRoute route : line.getRoutes().values()) {
+
+                // increase speed if current freespeed is lower.
+                List<TransitRouteStop> routeStops = route.getStops();
+                if (routeStops.size() < 2) {
+                    log.warn("TransitRoute with less than 2 stops found: line {}, route {}", line.getId(), route.getId());
+                    continue;
+                }
+
+                double lastDepartureOffset = route.getStops().get(0).getDepartureOffset().seconds();
+                // min. time spend at a stop, useful especially for stops whose arrival and departure offset is identical,
+                // so we need to add time for passengers to board and alight
+                double minStopTime = 30.0;
+
+                for (int i = 1; i < routeStops.size(); i++) {
+                    TransitRouteStop routeStop = routeStops.get(i);
+                    // if there is no departure offset set (or infinity), it is the last stop of the line,
+                    // so we don't need to care about the stop duration
+                    double stopDuration = routeStop.getDepartureOffset().isDefined() ?
+                            routeStop.getDepartureOffset().seconds() - routeStop.getArrivalOffset().seconds() : minStopTime;
+                    // ensure arrival at next stop early enough to allow for 30s stop duration -> time for passengers to board / alight
+                    // if link freespeed had been set such that the pt veh arrives exactly on time, but departure tiome is identical
+                    // with arrival time the pt vehicle would have been always delayed
+                    // Math.max to avoid negative values of travelTime
+                    double travelTime = Math.max(1, routeStop.getArrivalOffset().seconds() - lastDepartureOffset - 1.0 -
+                            (stopDuration >= minStopTime ? 0 : (minStopTime - stopDuration)));
+                    Link link = network.getLinks().get(routeStop.getStopFacility().getLinkId());
+                    increaseLinkFreespeedIfLower(link, link.getLength() / travelTime);
+                    lastDepartureOffset = routeStop.getDepartureOffset().seconds();
+                }
+            }
+        }
         return scenario;
     }
 }

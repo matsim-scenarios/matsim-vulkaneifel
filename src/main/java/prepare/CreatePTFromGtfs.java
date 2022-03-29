@@ -136,7 +136,7 @@ public class CreatePTFromGtfs implements MATSimAppCommand {
 
         Network network = Files.exists(networkFile) ? NetworkUtils.readNetwork(networkFile.toString()) : scenario.getNetwork();
 
-        Scenario ptScenario = getScenarioWithPseudoPtNetworkAndTransitVehicles(network, scenario.getTransitSchedule(), "pt_");
+        Scenario ptScenario = getScenarioWithPseudoPtNetworkAndTransitVehicles(network, scenario.getTransitSchedule());
 
         //found invalid xml characters, e.g. \u0016, make sure they wont be written to the schedule
         for (TransitStopFacility transitStopFacility : ptScenario.getTransitSchedule().getFacilities().values()) {
@@ -197,14 +197,14 @@ public class CreatePTFromGtfs implements MATSimAppCommand {
     /**
      * Creates the pt scenario and network.
      */
-    private static Scenario getScenarioWithPseudoPtNetworkAndTransitVehicles(Network network, TransitSchedule schedule, String ptNetworkIdentifier) {
+    private static Scenario getScenarioWithPseudoPtNetworkAndTransitVehicles(Network network, TransitSchedule schedule) {
         ScenarioUtils.ScenarioBuilder builder = new ScenarioUtils.ScenarioBuilder(ConfigUtils.createConfig());
         builder.setNetwork(network);
         builder.setTransitSchedule(schedule);
         Scenario scenario = builder.build();
 
         // add pseudo network for pt
-        new CreatePseudoNetwork(scenario.getTransitSchedule(), scenario.getNetwork(), "pt_", 120/3.6, 100000.0).createNetwork();
+        new CreatePseudoNetwork(scenario.getTransitSchedule(), scenario.getNetwork(), "pt_", 0.1, 100000.0).createNetwork();
 
         // create TransitVehicle types
         // see https://svn.vsp.tu-berlin.de/repos/public-svn/publications/vspwp/2014/14-24/ for veh capacities

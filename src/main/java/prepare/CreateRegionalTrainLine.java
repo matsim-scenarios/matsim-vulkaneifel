@@ -205,7 +205,7 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
             Id<Link> id = Id.createLinkId("pt_edit_" + i);
 
             Link link = networkFactory.createLink(id, fromNode, toNode);
-            link.setFreespeed(120/3.6);
+            link.setFreespeed(100/3.6);
             link.setNumberOfLanes(1);
             link.setAllowedModes(Set.of(TransportMode.pt));
             link.setCapacity(1000000.0);
