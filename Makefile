@@ -115,5 +115,5 @@ prepare: Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz
 	echo "Done, Have fun with your Vulkaneifel-Scenario ;)"
 
 run: prepare
-	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar run $(VERSION)/$(CONFIG) --config:controler.runId=$(VERSION) --output output/
+	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar run --config $(VERSION)/$(CONFIG) --config:controler.runId=$(VERSION) --output output/
 	echo "Test-run finished!"
