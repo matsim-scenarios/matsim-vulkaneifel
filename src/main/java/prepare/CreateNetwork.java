@@ -3,13 +3,9 @@ package prepare;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.locationtech.jts.geom.Geometry;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.population.Activity;
 import org.matsim.application.MATSimAppCommand;
-import org.matsim.application.options.CrsOptions;
-import org.matsim.application.options.ShpOptions;
 import org.matsim.contrib.osm.networkReader.LinkProperties;
 import org.matsim.contrib.osm.networkReader.OsmTags;
 import org.matsim.contrib.osm.networkReader.SupersonicOsmNetworkReader;
@@ -24,7 +20,6 @@ import picocli.CommandLine;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @CommandLine.Command(
@@ -40,6 +35,10 @@ public class CreateNetwork implements MATSimAppCommand {
 
     @CommandLine.Option(names = "--output", description = "path to output directory", required = true)
     private String output;
+
+    @CommandLine.Option(names = "--detailedArea", description = "path to shape that covers detailed network e.g. nrw", required = true)
+    private String detailedArea;
+
 
     @CommandLine.Option(names = "--veryDetailedArea", description = "path to shape that covers very detailed network", required = true)
     private String veryDetailedArea;
@@ -59,6 +58,7 @@ public class CreateNetwork implements MATSimAppCommand {
         //load veryDetailedArea geometry
         log.info("reading in very detailed area file");
         var veryDetailedAreaGeometries = getGeometries(veryDetailedArea);
+        var detailedAreaGeometries = getGeometries(detailedArea);
 
         log.info("done reading shape file");
 
@@ -67,6 +67,9 @@ public class CreateNetwork implements MATSimAppCommand {
                 .setCoordinateTransformation(transformation)
                 .setIncludeLinkAtCoordWithHierarchy((coord, level) -> {
                     if(level == LinkProperties.LEVEL_MOTORWAY) return true;
+
+                    if(level > LinkProperties.LEVEL_SECONDARY) return detailedAreaGeometries.stream()
+                            .anyMatch(geometry -> geometry.covers(MGC.coord2Point(coord)));
 
                     return veryDetailedAreaGeometries.stream()
                             .anyMatch(geometry -> geometry.covers(MGC.coord2Point(coord)));
@@ -98,17 +101,6 @@ public class CreateNetwork implements MATSimAppCommand {
         return ShapeFileReader.getAllFeatures(path).stream()
                 .map(simpleFeature -> (Geometry) simpleFeature.getDefaultGeometry())
                 .collect(Collectors.toList());
-    }
-
-    private static boolean isInDetailedArea(List<Geometry> detailedArea, Coord coord, int level){
-
-        if (detailedArea == null) return false;
-
-        if(level == LinkProperties.LEVEL_PRIMARY){
-
-            return detailedArea.stream()
-                    .anyMatch(geometry -> geometry.covers(MGC.coord2Point(coord)));
-        } else return false;
     }
 
     private void setAllowedMode(Link link, Map<String, String> tags) {

@@ -1,5 +1,5 @@
-VERSION := nrw-sued-rlp-saar
-SHP := NRW-Sued-Rlp-Saar.shp
+VERSION := nrw--rlp-saar
+SHP := NRW-RLP-Saarland.shp
 OSM := network.osm.pbf
 BIGBUS := big-bus-schedule
 TRAIN := vulkaneifel-train
@@ -12,7 +12,8 @@ Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz:
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare network\
 		--output $(VERSION)/temp/\
 		--osmnetwork osm/$(OSM)\
-		--veryDetailedArea shp/$(SHP)\
+		--veryDetailedArea dilutionArea/dilutionArea.shp\
+		--detailedArea shp/$(SHP)\
 	
 #create big bus schedule
 Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz
@@ -26,7 +27,7 @@ Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz: Prepare-Runs_Make
 		--output $(VERSION)/temp
 
 #create small bus schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz: #Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz
+Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare pt-from-gtfs\
 		gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
 		--network $(VERSION)/temp/vulkaneifel-network.xml.gz\
@@ -115,5 +116,5 @@ prepare: Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz
 	echo "Done, Have fun with your Vulkaneifel-Scenario ;)"
 
 run: prepare
-	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar run --config $(VERSION)/$(CONFIG) --config:controler.runId=$(VERSION) --output output/
+	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar run --config $(VERSION)/$(CONFIG) --config:controler.runId=$(VERSION) --output $(VERSION)/output/
 	echo "Test-run finished!"
