@@ -1,4 +1,4 @@
-VERSION := nrw--rlp-saar
+VERSION := nrw-rlp-saar
 SHP := NRW-RLP-Saarland.shp
 OSM := network.osm.pbf
 BIGBUS := big-bus-schedule
@@ -13,7 +13,6 @@ Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz:
 		--output $(VERSION)/temp/\
 		--osmnetwork osm/$(OSM)\
 		--veryDetailedArea dilutionArea/dilutionArea.shp\
-		--detailedArea shp/$(SHP)\
 	
 #create big bus schedule
 Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz
