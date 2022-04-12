@@ -19,7 +19,7 @@ import java.util.List;
         CreateNetwork.class, CreatePTFromGtfs.class,
         CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class,
         MergeTransitSchedules.class, TrajectoryToPlans.class, CleanPopulation.class, ResolveGridCoordinates.class,
-        DownSamplePopulation.class, PopulationFilter.class
+        DownSamplePopulation.class
 })
 
 public class VulkaneifelApplication extends MATSimApplication {

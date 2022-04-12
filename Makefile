@@ -1,11 +1,12 @@
-VERSION := nrw-rlp-saar
-SHP := NRW-RLP-Saarland.shp
+VERSION := nrw-sued-rlp-saar
+SHP := NRW-Sued-Rlp-Saar.shp
 OSM := network.osm.pbf
 BIGBUS := big-bus-schedule
 TRAIN := vulkaneifel-train
 BUS := vulkaneifel-bus
 BUS_EDIT := $(BUS)-edit
 CONFIG := config_vulkaneifel-test.xml
+OUTPUT := ../vulkaneifel-1.0
 
 #create network from osm.pbf
 Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz:
@@ -78,7 +79,7 @@ Prepare-Runs_Make/input/vulkaneifel-complete-schedule.xml.gz: Prepare-Runs_Make/
 		$(VERSION)/temp/vulkaneifel-transitVehicles-only-regional-train.xml.gz\
 		--name vulkaneifel\
 		--network $(VERSION)/temp/vulkaneifel-network.xml.gz\
-		--output $(VERSION)\
+		--output $(OUTPUT)\
 
 Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz: Prepare-Runs_Make/input/vulkaneifel-complete-schedule.xml.gz
 	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare trajectory-to-plans	\
@@ -88,14 +89,6 @@ Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz: Prepare-Runs_Make/input/vulkan
 	--output $(VERSION)/temp	\
 	--target-crs EPSG:25832\
 
-#population filter
-	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare filter-population	\
-	$(VERSION)/temp/tmp-25pct.plans.xml.gz	\
-    --shp shp/$(SHP)	\
-    --input-crs EPSG:25832	\
-    --target-crs EPSG:25832	\
-    --output $(VERSION)/temp/tmp-25pct.plans.xml.gz	\
-
 #grid2coordinates
 	java -Xmx10G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare resolve-grid-coords	\
 	$(VERSION)/temp/tmp-25pct.plans.xml.gz	\
@@ -103,11 +96,20 @@ Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz: Prepare-Runs_Make/input/vulkan
 	--input-crs EPSG:25832	\
 	--landuse landuse/landuse.shp	\
 	--network $(VERSION)/vulkaneifel-network-with-pt.xml.gz	\
-	--output $(VERSION)/vulkaneifel-25pct-plans.xml.gz\
+	--output $(VERSION)/temp/tmp-25pct.plans.xml.gz\
+
+#clean population
+	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare clean-population	\
+	--plans $(VERSION)/temp/tmp-25pct.plans.xml.gz	\
+	--remove-routes	\
+	--remove-unselected-plans	\
+	--remove-activity-location	\
+	--trips-to-legs	\
+	--output $(OUTPUT)/vulkaneifel-25pct-plans.xml.gz\
 
 #downsampling
 	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare downsample-population	\
-	$(VERSION)/vulkaneifel-25pct-plans.xml.gz	\
+	$(OUTPUT)/vulkaneifel-25pct-plans.xml.gz	\
 	--sample-size 0.25	\
 	--samples 0.1 0.01\
 
