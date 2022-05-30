@@ -1,7 +1,8 @@
 # Add own ignores on top, don't edit the template
 
 output/
-scenario/
+scenario/open-vulkaneifel-scenario/vulkaneifel-0.1-10pct
+scenario/open-vulkaneifel-scenario/vulkaneifel-v1.0-25pct
 *.gz
 *.pbf
 
