@@ -128,45 +128,6 @@ public class CreateNetwork implements MATSimAppCommand {
         Geometry dilutionArea = getGeometries(pathToVeryDetailedArea);
         
         return dilutionArea != null ? dilutionArea.getEnvelope() : null;
-/*
-        Point center;
-        double highestDistance;
-
-        //getEnevelope
-        Point tempPoint = veryDetailedAreaGeometry.stream()
-                .map(Geometry::getCentroid)
-                .reduce(
-                        (point, point2) -> new GeometryFactory().createPoint(new Coordinate(point.getX() + point2.getX(), point.getY() + point2.getY()))
-                )
-                .get();
-
-        center = new GeometryFactory().createPoint( new Coordinate( tempPoint.getX() / veryDetailedAreaGeometry.size(),
-                tempPoint.getY() / veryDetailedAreaGeometry.size() ));
-
-        var maxDistanceFromCentroid = veryDetailedAreaGeometry.stream()
-                .map(Geometry::getCoordinates)
-                .flatMap(Arrays::stream)
-                .reduce((coordinate, coordinate2) -> {
-
-                    Coord coord1 = MGC.coordinate2Coord(coordinate);
-                    Coord coord2 = MGC.coordinate2Coord(coordinate2);
-
-                    return NetworkUtils.getEuclideanDistance(MGC.point2Coord(center), coord1) > NetworkUtils.getEuclideanDistance(MGC.point2Coord(center), coord2) ?
-                            coordinate: coordinate2;
-
-                }).get();
-
-        highestDistance = NetworkUtils.getEuclideanDistance(MGC.point2Coord(center), MGC.coordinate2Coord(maxDistanceFromCentroid)) * 1.5;
-
-        var left = center.getX() - highestDistance;
-        var right = center.getX() + highestDistance;
-        var top = center.getY() + highestDistance;
-        var bottom = center.getY() - highestDistance;
-        var geometry = new GeometryFactory().createPolygon(new Coordinate[]{
-                new Coordinate(left, top), new Coordinate(right, top), new Coordinate(right, bottom), new Coordinate(left, bottom), new Coordinate(left, top)
-        });
-
-        return new PreparedGeometryFactory().create(geometry);*/
     }
 
     private void setAllowedMode(Link link, Map<String, String> tags) {
