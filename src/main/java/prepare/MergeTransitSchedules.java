@@ -12,7 +12,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.TransitScheduleUtils;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.pt.utils.CreatePseudoNetwork;
 import org.matsim.vehicles.MatsimVehicleWriter;
@@ -23,7 +22,6 @@ import picocli.CommandLine;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,7 +59,6 @@ public class MergeTransitSchedules implements MATSimAppCommand {
     public Integer call() throws Exception {
 
         Config emptyConfig = ConfigUtils.createConfig();
-//        emptyConfig.network().setInputFile(network);
 
         if(transitSchedules.size() != transitVehicles.size()){
             log.info("There are more or less transit schedules than vehicles!");
