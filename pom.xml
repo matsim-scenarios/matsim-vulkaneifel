@@ -10,17 +10,9 @@
 	<description>A transport model of the district of Vulkaneifel and its surroundings</description>
 
 	<properties>
-		<!-- release -->
 		<maven.compiler.release>17</maven.compiler.release>
-
-		<!-- PR-labelled release -->
 		<matsim.version>15.0-PR2109</matsim.version>
-
-		<!-- snapshot == not recommended: rather use PR-labelled release!-->
-		<!--				<matsim.version>14.0-SNAPSHOT</matsim.version>-->
-
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<jsprit.version>1.8</jsprit.version>
 	</properties>
 
 	<repositories>
@@ -100,14 +92,54 @@
 			<version>${matsim.version}</version>
 		</dependency>
 
+		<!-- test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.matsim</groupId>
+			<artifactId>matsim</artifactId>
+			<version>${matsim.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.matsim</groupId>
+			<artifactId>matsim-examples</artifactId>
+			<version>${matsim.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.22.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
-<!--				The maven-shade-plugin replaces the maven-assembly-plugin to configure "mvn package". The assembly-plugin regularly-->
-<!--				creates problems when GeoTools are used, which the shade-plugin does not (see-->
-<!--				https://stackoverflow.com/questions/27429097/geotools-cannot-find-hsql-epsg-db-throws-error-nosuchauthoritycodeexception/27431381#27431381)-->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>17</source>
+					<target>17</target>
+					<showWarnings>false</showWarnings>
+					<showDeprecation>false</showDeprecation>
+					<encoding>UTF-8</encoding>
+					<!-- configure initial and maximal memory for compiling -->
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<!--				The maven-shade-plugin replaces the maven-assembly-plugin to configure "mvn package". The assembly-plugin regularly-->
+				<!--				creates problems when GeoTools are used, which the shade-plugin does not (see-->
+				<!--				https://stackoverflow.com/questions/27429097/geotools-cannot-find-hsql-epsg-db-throws-error-nosuchauthoritycodeexception/27431381#27431381)-->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.2</version>
@@ -121,16 +153,19 @@
 							<outputFile>${project.basedir}/${project.build.finalName}.jar</outputFile>
 							<transformers>
 								<!-- The following sets the main class for the executable jar as you otherwise would with the assembly plugin -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
-										<Main-Class>org.matsim.run.RunKVulkaneifelScenario</Main-Class>
+										<Main-Class>org.matsim.project.drtSchoolTransportStudy.jsprit.RunJspritScenario
+										</Main-Class>
 										<Specification-Vendor>org.matsim</Specification-Vendor>
 										<Implementation-Vendor>org.matsim</Implementation-Vendor>
 										<Implementation-Version>${project.version}</Implementation-Version>
 									</manifestEntries>
 								</transformer>
 								<!-- The following merges the various GeoTools META-INF/services files         -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer
+										implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 							</transformers>
 							<filters>
 								<filter>

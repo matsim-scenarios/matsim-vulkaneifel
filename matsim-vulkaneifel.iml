@@ -106,7 +106,7 @@
     <orderEntry type="library" name="Maven: org.matsim.contrib:ev:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-math3:3.6.1" level="project" />
     <orderEntry type="library" name="Maven: one.util:streamex:0.8.1" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.13.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.13.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:1.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.matsim:matsim:test-jar:tests:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: org.matsim.contrib:application:15.0-PR2109" level="project" />
@@ -270,6 +270,7 @@
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.36" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-reload4j:1.7.36" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.reload4j:reload4j:1.2.19" level="project" />
-    <orderEntry type="library" name="Maven: org.matsim:matsim-examples:15.0-PR2109" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.matsim:matsim-examples:15.0-PR2109" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.assertj:assertj-core:3.22.0" level="project" />
   </component>
 </module>
