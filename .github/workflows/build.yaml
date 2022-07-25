@@ -31,7 +31,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Test module
-        run:  mvn -Dtest=${{matrix.module}} test --batch-mode -Dmatsim.preferLocalDtds=true -Dmaven.javadoc.skip -e
+        run:  mvn -Dtest=${{matrix.module}} test --batch-mode -Dmatsim.preferLocalDtds=true -Dmaven.javadoc.skip -e -DfailIfNoTests=false
 
     env:
       MAVEN_OPTS: -Xmx10G
