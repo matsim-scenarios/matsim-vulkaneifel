@@ -81,6 +81,8 @@
     <orderEntry type="library" name="Maven: org.matsim.contrib:drt:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.12.0" level="project" />
     <orderEntry type="library" name="Maven: commons-logging:commons-logging:1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.matsim.contrib:drt-extensions:15.0-PR2109" level="project" />
+    <orderEntry type="library" name="Maven: org.matsim.contrib:ev:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: org.matsim.contrib:dvrp:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: org.matsim.contrib:otfvis:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: net.java.dev.timingframework:timingframework:1.0" level="project" />
@@ -103,7 +105,6 @@
     <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.9.4" level="project" />
     <orderEntry type="library" name="Maven: commons-collections:commons-collections:3.2.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-collections4:4.4" level="project" />
-    <orderEntry type="library" name="Maven: org.matsim.contrib:ev:15.0-PR2109" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-math3:3.6.1" level="project" />
     <orderEntry type="library" name="Maven: one.util:streamex:0.8.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.13.2" level="project" />
