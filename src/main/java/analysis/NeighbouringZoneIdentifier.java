@@ -7,14 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystem;
 import org.matsim.contrib.drt.analysis.zonal.DrtZone;
 
 public class NeighbouringZoneIdentifier {
-    private static final Logger log = Logger.getLogger(NeighbouringZoneIdentifier.class);
+    private static final Logger log = LogManager.getLogger(NeighbouringZoneIdentifier.class);
     private final Map<DrtZone, Set<DrtZone>> neighbouringMap;;
 
     public NeighbouringZoneIdentifier(DrtZonalSystem zonalSystem) {

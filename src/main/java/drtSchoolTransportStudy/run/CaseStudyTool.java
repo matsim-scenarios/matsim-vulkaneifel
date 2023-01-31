@@ -35,9 +35,9 @@ public class CaseStudyTool {
 
     public void prepareCaseStudy(Config config, DrtConfigGroup drtConfigGroup) {
         String inputPlansFile = "./case-study-plans/alpha_" + alpha + "-beta_" + beta + ".plans.xml.gz";
-        drtConfigGroup.setMaxWaitTime(7200);
-        drtConfigGroup.setMaxTravelTimeAlpha(Double.parseDouble(alpha));
-        drtConfigGroup.setMaxTravelTimeBeta(Double.parseDouble(beta));
+        drtConfigGroup.maxWaitTime = 7200;
+        drtConfigGroup.maxTravelTimeAlpha = Double.parseDouble(alpha);
+        drtConfigGroup.maxTravelTimeBeta = Double.parseDouble(beta);
 
         switch (schoolStartingTime) {
             case UNIFORM:
@@ -51,15 +51,15 @@ public class CaseStudyTool {
 
         switch (serviceScheme) {
             case DOOR_TO_DOOR:
-                drtConfigGroup.setOperationalScheme(DrtConfigGroup.OperationalScheme.door2door);
+                drtConfigGroup.operationalScheme = DrtConfigGroup.OperationalScheme.door2door;
                 break;
             case STOP_BASED:
-                drtConfigGroup.setOperationalScheme(DrtConfigGroup.OperationalScheme.stopbased);
-                drtConfigGroup.setTransitStopFile("vulkaneifel-v1.0-drt-stops.xml");
+                drtConfigGroup.operationalScheme = DrtConfigGroup.OperationalScheme.stopbased;
+                drtConfigGroup.transitStopFile = "vulkaneifel-v1.0-drt-stops.xml";
                 break;
             case STOP_BASED_ADAPTED:
-                drtConfigGroup.setOperationalScheme(DrtConfigGroup.OperationalScheme.stopbased);
-                drtConfigGroup.setTransitStopFile("vulkaneifel-v1.0-drt-stops.xml");
+                drtConfigGroup.operationalScheme = DrtConfigGroup.OperationalScheme.stopbased;
+                drtConfigGroup.transitStopFile = "vulkaneifel-v1.0-drt-stops.xml";
                 inputPlansFile = inputPlansFile.replace(".plans.xml.gz", "-adapted_to_drt_stops.plans.xml.gz");
                 // In the stop based adapted case, departure time is modified based on the DRT stops (most students will depart earlier)
                 break;
