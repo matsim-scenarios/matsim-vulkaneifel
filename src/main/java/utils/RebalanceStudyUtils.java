@@ -10,13 +10,13 @@ import org.matsim.contrib.drt.optimizer.rebalancing.plusOne.PlusOneRebalancingSt
 public class RebalanceStudyUtils {
 	public static void prepareAdaptiveRealTimeStrategy(RebalancingParams rebalancingParams) {
 		MinCostFlowRebalancingStrategyParams minCostFlowRebalancingStrategyParams = new MinCostFlowRebalancingStrategyParams();
-		minCostFlowRebalancingStrategyParams.setRebalancingTargetCalculatorType(
-				RebalancingTargetCalculatorType.EqualRebalancableVehicleDistribution);
+		minCostFlowRebalancingStrategyParams.rebalancingTargetCalculatorType =
+				RebalancingTargetCalculatorType.EqualRebalancableVehicleDistribution;
 		minCostFlowRebalancingStrategyParams
-				.setZonalDemandEstimatorType(ZonalDemandEstimatorType.PreviousIterationDemand);
-		minCostFlowRebalancingStrategyParams.setTargetAlpha(1);
-		minCostFlowRebalancingStrategyParams.setTargetBeta(0);
-		minCostFlowRebalancingStrategyParams.setDemandEstimationPeriod(108000);
+				.zonalDemandEstimatorType = ZonalDemandEstimatorType.PreviousIterationDemand;
+		minCostFlowRebalancingStrategyParams.targetAlpha = 1;
+		minCostFlowRebalancingStrategyParams.targetBeta = 0;
+		minCostFlowRebalancingStrategyParams.demandEstimationPeriod = 108000;
 		rebalancingParams.addParameterSet(minCostFlowRebalancingStrategyParams);
 	}
 
@@ -26,28 +26,28 @@ public class RebalanceStudyUtils {
 
 	public static void prepareFeedforwardStrategy(RebalancingParams rebalancingParams) {
 		FeedforwardRebalancingStrategyParams feedforwardRebalancingStrategyParams = new FeedforwardRebalancingStrategyParams();
-		feedforwardRebalancingStrategyParams.setFeedbackSwitch(true);
-		feedforwardRebalancingStrategyParams.setFeedforwardSignalLead(300);
-		feedforwardRebalancingStrategyParams.setMinNumVehiclesPerZone(1);
+		feedforwardRebalancingStrategyParams.feedbackSwitch = true;
+		feedforwardRebalancingStrategyParams.feedforwardSignalLead = 300;
+		feedforwardRebalancingStrategyParams.minNumVehiclesPerZone = 1;
 		rebalancingParams.addParameterSet(feedforwardRebalancingStrategyParams);
 	}
 	
 	public static void preparePureFeedforwardStrategy(RebalancingParams rebalancingParams) {
 		FeedforwardRebalancingStrategyParams feedforwardRebalancingStrategyParams = new FeedforwardRebalancingStrategyParams();
-		feedforwardRebalancingStrategyParams.setFeedbackSwitch(false);
-		feedforwardRebalancingStrategyParams.setFeedforwardSignalLead(300);
+		feedforwardRebalancingStrategyParams.feedbackSwitch = false;
+		feedforwardRebalancingStrategyParams.feedforwardSignalLead = 300;
 		rebalancingParams.addParameterSet(feedforwardRebalancingStrategyParams);
 	}
 	
 	public static void prepareMinCostFlowStrategy(RebalancingParams rebalancingParams) {
 		MinCostFlowRebalancingStrategyParams minCostFlowRebalancingStrategyParams = new MinCostFlowRebalancingStrategyParams();
-		minCostFlowRebalancingStrategyParams.setRebalancingTargetCalculatorType(
-				RebalancingTargetCalculatorType.EstimatedDemand);
+		minCostFlowRebalancingStrategyParams.rebalancingTargetCalculatorType =
+				RebalancingTargetCalculatorType.EstimatedDemand;
 		minCostFlowRebalancingStrategyParams
-				.setZonalDemandEstimatorType(ZonalDemandEstimatorType.PreviousIterationDemand);
-		minCostFlowRebalancingStrategyParams.setTargetAlpha(0.8);
-		minCostFlowRebalancingStrategyParams.setTargetBeta(0.3);
-		minCostFlowRebalancingStrategyParams.setDemandEstimationPeriod(1800);
+				.zonalDemandEstimatorType = ZonalDemandEstimatorType.PreviousIterationDemand;
+		minCostFlowRebalancingStrategyParams.targetAlpha = 0.8;
+		minCostFlowRebalancingStrategyParams.targetBeta = 0.3;
+		minCostFlowRebalancingStrategyParams.demandEstimationPeriod = 1800;
 		rebalancingParams.addParameterSet(minCostFlowRebalancingStrategyParams);
 	}
 	
@@ -55,8 +55,8 @@ public class RebalanceStudyUtils {
 	// This is due to the current setup in the zonal system creation. No rebalnce --> no DRT zonal system
 	public static void prepareNoRebalance(RebalancingParams rebalancingParams) {
 		FeedforwardRebalancingStrategyParams feedforwardRebalancingStrategyParams = new FeedforwardRebalancingStrategyParams();
-		feedforwardRebalancingStrategyParams.setFeedbackSwitch(false);
-		feedforwardRebalancingStrategyParams.setFeedforwardSignalStrength(0);
+		feedforwardRebalancingStrategyParams.feedbackSwitch = false;
+		feedforwardRebalancingStrategyParams.feedforwardSignalStrength = 0;
 		rebalancingParams.addParameterSet(feedforwardRebalancingStrategyParams);
 	}
 }

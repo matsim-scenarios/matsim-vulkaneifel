@@ -1,10 +1,8 @@
 package run;
 
 import org.matsim.application.MATSimApplication;
-import org.matsim.application.prepare.population.CleanPopulation;
-import org.matsim.application.prepare.population.DownSamplePopulation;
-import org.matsim.application.prepare.population.ResolveGridCoordinates;
-import org.matsim.application.prepare.population.TrajectoryToPlans;
+import org.matsim.application.prepare.freight.tripExtraction.ExtractRelevantFreightTrips;
+import org.matsim.application.prepare.population.*;
 import org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -14,12 +12,11 @@ import prepare.*;
 
 import java.util.List;
 
-@CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version="1.0")
+@CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version="1.1")
 @MATSimApplication.Prepare({
-        CreateNetwork.class, CreatePTFromGtfs.class,
-        CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class,
-        MergeTransitSchedules.class, TrajectoryToPlans.class, CleanPopulation.class, ResolveGridCoordinates.class,
-        DownSamplePopulation.class
+        CreateNetwork.class, CreateTransitScheduleFromGtfs.class, CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class,
+        MergeTransitSchedules.class, TrajectoryToPlans.class, GenerateShortDistanceTrips.class, CleanPopulation.class, ResolveGridCoordinates.class,
+        DownSamplePopulation.class, ExtractRelevantFreightTrips.class, FixSubtourModes.class, AdjustActivityToLinkDistances.class
 })
 
 public class VulkaneifelApplication extends MATSimApplication {

@@ -62,8 +62,8 @@ public class MatrixBasedVrpCosts implements VehicleRoutingTransportCosts {
 		// compute node-to-node TT matrix
 		var travelTime = new QSimFreeSpeedTravelTime(1);
 		var travelDisutility = new TimeAsTravelDisutility(travelTime);
-		var nodeToNodeMatrix = TravelTimeMatrices.calculateTravelTimeMatrix(network, nodeByZone, 0, travelTime,
-				travelDisutility, Runtime.getRuntime().availableProcessors());
+		var routingParams = new TravelTimeMatrices.RoutingParams(network, travelTime, travelDisutility, Runtime.getRuntime().availableProcessors());
+		var nodeToNodeMatrix = TravelTimeMatrices.calculateTravelTimeMatrix(routingParams, nodeByZone, 0);
 
 		int size = locationByLinkId.size();
 		int[][] travelTimes = new int[size][size];
@@ -79,9 +79,12 @@ public class MatrixBasedVrpCosts implements VehicleRoutingTransportCosts {
 				var toLocationIdx = to.getValue().getIndex();
 
 				if (fromLink != toLink) { // otherwise, the matrix cell remains set to 0
-					double duration = FIRST_LINK_TT + nodeToNodeMatrix.get(fromZone, toZone) + VrpPaths.getLastLinkTT(
+					/*double duration = FIRST_LINK_TT + nodeToNodeMatrix.get(fromZone, toZone) + VrpPaths.getLastLinkTT(
 							travelTime, toLink, 0);
 					travelTimes[fromLocationIdx][toLocationIdx] = (int)duration;
+					TODO:
+					 */
+					throw new IllegalStateException("Class Matrix.java is no longer public!");
 				}
 			}
 		}

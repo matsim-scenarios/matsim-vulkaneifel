@@ -31,7 +31,7 @@ public class VehicleAssignmentTools {
                                   Network network, TravelDisutility travelDisutility) {
 		this.travelTime = travelTime;
 		this.taskFactory = taskFactory;
-		stopDuration = drtCfg.getStopDuration();
+		stopDuration = drtCfg.stopDuration;
 		leastCostPathCalculator = new FastAStarEuclideanFactory().createPathCalculator(network, travelDisutility,
 				travelTime);
 	}
