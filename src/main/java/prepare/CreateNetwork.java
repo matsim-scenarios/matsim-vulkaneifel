@@ -1,7 +1,7 @@
 package prepare;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -35,7 +35,7 @@ public class CreateNetwork implements MATSimAppCommand {
     @CommandLine.Option(names = "--osmnetwork", description = "path to osm data files", required = true)
     private String osmnetwork;
 
-    @CommandLine.Option(names = "--output", description = "path to output directory", required = true)
+    @CommandLine.Option(names = "--output", description = "path to output file", required = true)
     private String output;
 
     @CommandLine.Option(names = "--veryDetailedArea", description = "path to shape that covers very detailed network", required = true)
@@ -79,7 +79,7 @@ public class CreateNetwork implements MATSimAppCommand {
         new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
 
         log.info("Finished cleaning network. Write network");
-        new NetworkWriter(network).write(this.output + "/vulkaneifel-network.xml.gz");
+        new NetworkWriter(network).write(this.output);
 
         log.info("Finished CreateNetwork. Exiting.");
         return 0;
