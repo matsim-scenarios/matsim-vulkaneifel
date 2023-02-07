@@ -2,7 +2,7 @@ SHP := NRW-Sued-Rlp-Saar.shp
 S := vulkaneifel
 V := v1.1
 CRS := EPSG:25832
-DILUTION_AREA := https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shp
+DILUTION_AREA := input/dilutionArea/dilutionArea.shp
 JAR := matsim-vulkaneifel-1.1-SNAPSHOT.jar
 
 REGIONS := baden-wuerttemberg bayern brandenburg bremen hamburg hessen mecklenburg-vorpommern niedersachsen nordrhein-westfalen\
@@ -12,24 +12,40 @@ SHP_FILES := $(patsubst %, input/shp/%-210101-free.shp.zip, $(REGIONS))
 
 # Required files
 input/network.osm.pbf:
-	curl https://download.geofabrik.de/europe/germany-230101.osm.pbf -o input/network.osm.pbf
+	curl https://download.geofabrik.de/europe/germany-230101.osm.pbf -o $@\
+
+input/dilutionArea/dilutionArea.shp:
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shp -o $@\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shx -o input/dilutionArea/dilutionArea.shx\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.prj -o input/dilutionArea/dilutionArea.prj\
+
+input/temp/population.xml.gz:
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/population.xml.gz -o $@\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/personAttributes.xml.gz -o input/temp/personAttributes.xml.gz\
+
+input/temp/german_freight.25pct.plans.xml.gz:
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v1/german-wide-freight-25pct.xml.gz -o input/temp/german_freight.25pct.plans.xml.gz\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v1/german-primary-road.network.xml.gz -o input/temp/germany-europe-network.xml.gz\
 
 ${SHP_FILES} :
 	curl https://download.geofabrik.de/europe/germany/$(@:input/shp/%=%) -o $@\
 
 input/landuse/landuse.shp: ${SHP_FILES}
-	mkdir -p input/landuse\
-	java -Xmx20G -jar $(JAR) prepare create-landuse-shp\
+	java -Djava.io.tmpdir=${TMPDIR} -Xmx20G -jar $(JAR) prepare create-landuse-shp\
 		$^\
 		--target-crs EPSG:25832\
 		--output $@\
 
 #create network from osm.pbf
-input/$(S)-$(V)-network.xml.gz: input/network.osm.pbf
+input/$(S)-$(V)-network.xml.gz: input/network.osm.pbf #input/dilutionArea/dilutionArea.shp
 	java -Xmx48G -jar $(JAR) prepare network\
 		--output $@\
 		--osmnetwork input/network.osm.pbf\
-		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
+		--veryDetailedArea input/dilutionArea.shp\
 		
 #create transit schedule
 input/$(S)-$(V)-transitSchedule.xml.gz: input/temp/$(S)-$(V)-network.xml.gz
@@ -48,7 +64,7 @@ input/$(S)-$(V)-transitSchedule.xml.gz: input/temp/$(S)-$(V)-network.xml.gz
 		--network input/temp/$(S)-$(V)-network-with-pt.xml.gz	\
 		--schedule input/temp/$(S)-$(V)-transitSchedule.xml.gz	\
 		--vehicles input/temp/$(S)-$(V)-transitVehicles.xml.gz	\
-		--shp input/dilutionArea/dilutionArea.shp\
+		--shp $(DILUTION_AREA)\
 		--shp-crs EPSG:25832\
         --target-crs EPSG:25832\
 		--name $(S)-$(V)\
@@ -71,29 +87,31 @@ input/$(S)-$(V)-transitSchedule.xml.gz: input/temp/$(S)-$(V)-network.xml.gz
 		--name $(S)-$(V)\
 		--output input\
 
-input/freight-trips.xml.gz: input/$(S)-$(V)-network.xml.gz
-	java -jar $(JAR) prepare extract-freight-trips ../shared-svn/projects/german-wide-freight/v1.2/german-wide-freight-25pct.xml.gz\
-		 --network ../shared-svn/projects/german-wide-freight/original-data/german-primary-road.network.xml.gz\
+input/freight-trips.xml.gz: input/$(S)-$(V)-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz input/dilutionArea.shp
+	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
+		 --network input/temp/germany-europe-network.xml.gz\
 		 --input-crs EPSG:5677\
 		 --target-crs $(CRS)\
 		 --shp $(DILUTION_AREA)\
 		 --output $@
 
-input/$(S)-$(V)-25pct-plans.xml.gz: input/landuse/landuse.shp input/$(S)-$(V)-transitSchedule.xml.gz
+input/$(S)-$(V)-25pct-plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz  #input/$(S)-$(V)-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
     	--name $(S)-$(V)	--sample-size 0.25\
-    	--attributes https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/personAttributes.xml.gz\
-    	--population https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/population.xml.gz\
-    	--output input/temp\
+    	--attributes input/temp/personAttributes.xml.gz\
+    	--population input/temp/population.xml.gz\
+    	--output input/\
     	--target-crs EPSG:25832\
 
 #grid2coordinates
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/vulkaneifel-v1.0-25pct/vulkaneifel-v1.0.network.xml.gz -o input/temp/$(S)-$(V)-network-with-pt.xml.gz\
+
 	java -Xmx10G -jar $(JAR) prepare resolve-grid-coords\
-    	$@\
+    	input/vulkaneifel-v1.1-25pct.plans.xml.gz\
     	--grid-resolution 300\
     	--input-crs EPSG:25832\
     	--landuse landuse/landuse.shp\
-    	--network C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/scenario/open-vulkaneifel-scenario/vulkaneifel-v1.0-25pct/vulkaneifel-v1.0-network-with-pt.xml.gz\
+    	--network input/temp/$(S)-$(V)-network-with-pt.xml.gz\
     	--output $@\
 
 #clean population
@@ -110,15 +128,21 @@ input/$(S)-$(V)-25pct-plans.xml.gz: input/landuse/landuse.shp input/$(S)-$(V)-tr
  	 --input-crs $(CRS)\
  	 --shp $(DILUTION_AREA)\
  	 --shp-crs EPSG:25832\
- 	 --num-trips 67395
+ 	 --num-trips 13494\
+ 	 --range 5000\
+ 	 --output $@\
 
 	java -jar $(JAR) prepare adjust-activity-to-link-distances\
 	$@\
 	 --shp $(DILUTION_AREA)\
 	 --scale 1.15\
 	 --input-crs $(CRS)\
-	 --network input/$(S)-$(V)-network.xml.gz\
+	 --network input/temp/$(S)-$(V)-network-with-pt.xml.gz\
 	 --output $@\
+
+	 java -jar $(JAR) prepare fix-subtour-modes\
+ 		--input $@\
+ 		--output $@\
 
 	java -jar $(JAR) prepare merge-populations\
 	$@\
