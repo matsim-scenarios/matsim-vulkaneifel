@@ -4,7 +4,8 @@ import java.io.IOException;
 
 import analysis.ZonalAvailabilityModule;
 import matchingAlgorithm.SimpleUnitCapacityRequestInserterModule;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.optimizer.rebalancing.RebalancingParams;
 import org.matsim.contrib.drt.routing.DrtRoute;
@@ -25,7 +26,7 @@ import utils.PredeterminedLinkSelectionModule;
 import utils.RebalanceStudyUtils;
 
 public class RunVulkaneifelScenario {
-    private static final Logger log = Logger.getLogger(RunVulkaneifelScenario.class);
+    private static final Logger log = LogManager.getLogger(RunVulkaneifelScenario.class);
     private static final String OUTPUT_DIRECTORY_HEADING = "D:\\TU_Berlin\\Projects\\RebalancingStudy_testing\\";
     private static final String VEHICLE_FILE_HEADING = "C:\\Users\\cluac\\MATSimScenarios\\Vulkaneifel\\drtVehicles\\snz-vulkaneifel-random-";
     private static final String VEHICLE_FILE_ENDING = "vehicles-4seats.xml.gz";
@@ -56,13 +57,13 @@ public class RunVulkaneifelScenario {
 
                 for (DrtConfigGroup drtConfigGroup : MultiModeDrtConfigGroup.get(config).getModalElements()) {
                     // Set Fleet size (i.e. set vehicles file)
-                    drtConfigGroup.setVehiclesFile(VEHICLE_FILE_HEADING + fleetSize + VEHICLE_FILE_ENDING);
+                    drtConfigGroup.vehiclesFile = VEHICLE_FILE_HEADING + fleetSize + VEHICLE_FILE_ENDING;
 
                     RebalancingParams rebalancingParams = drtConfigGroup.getRebalancingParams()
                             .orElse(new RebalancingParams());
-                    rebalancingParams.setInterval(REBALANCE_INTERVAL);
-                    rebalancingParams.setMinServiceTime(3600);
-                    rebalancingParams.setMaxTimeBeforeIdle(120);
+                    rebalancingParams.interval = REBALANCE_INTERVAL;
+                    rebalancingParams.minServiceTime = 3600;
+                    rebalancingParams.maxTimeBeforeIdle = 120;
 
                     // Set rebalancing Strategy
                     switch (rebalanceStrategy) {
@@ -85,7 +86,7 @@ public class RunVulkaneifelScenario {
                         case "MinCostFlow":
                             log.info("Min Cost Flow rebalancing strategy is used");
                             RebalanceStudyUtils.prepareMinCostFlowStrategy(rebalancingParams);
-                            rebalancingParams.setInterval(1800);
+                            rebalancingParams.interval = 1800;
                             break;
                         default:
                             log.info("No rebalancing strategy is used");

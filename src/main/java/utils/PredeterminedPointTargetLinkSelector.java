@@ -1,6 +1,7 @@
 package utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.matsim.api.core.v01.Coord;
@@ -19,7 +20,7 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class PredeterminedPointTargetLinkSelector implements DrtZoneTargetLinkSelector {
-	private static final Logger log = Logger.getLogger(PredeterminedPointTargetLinkSelector.class);
+	private static final Logger log = LogManager.getLogger(PredeterminedPointTargetLinkSelector.class);
 	private final Map<DrtZone, Link> targetLinks = new HashMap<>();
 	private final DrtZonalSystem drtZonalSystem;
 	private final String defaultPath = "C:\\Users\\cluac\\MATSimScenarios\\Vulkaneifel\\ZonalSystem\\RequestClusterTargetPoints.shp";

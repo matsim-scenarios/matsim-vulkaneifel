@@ -1,13 +1,14 @@
 package utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystem;
 import org.matsim.contrib.drt.analysis.zonal.DrtZoneTargetLinkSelector;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.dvrp.run.AbstractDvrpModeModule;
 
 public class PredeterminedLinkSelectionModule extends AbstractDvrpModeModule {
-	private static final Logger log = Logger.getLogger(PredeterminedLinkSelectionModule.class);
+	private static final Logger log = LogManager.getLogger(PredeterminedLinkSelectionModule.class);
 	private final String pathToPredeterminedPoints = "C:\\Users\\cluac\\MATSimScenarios\\Vulkaneifel\\ZonalSystem\\RequestClusterTargetPoints.shp";
 
 	public PredeterminedLinkSelectionModule(DrtConfigGroup drtCfg) {
