@@ -110,7 +110,7 @@ save_plot_as_jpg(plt.1, "MiD_Distance_Share")
 library(sf)
 TRIPS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_trips.csv.gz"
 PERSONS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_persons.csv.gz"
-SHP <- "Y:/zoerner/matsim-vulkaneifel/input/dilutionArea/dilutionArea.shp"
+SHP = "C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/scenario/open-vulkaneifel-scenario/vulkaneifel-v1.0-25pct/dilutionArea/dilutionArea.shp"
 shp <- st_read(SHP)
 trips <- read_csv2(TRIPS)
 persons <- read_csv2(PERSONS)
@@ -118,11 +118,15 @@ persons <- read_csv2(PERSONS)
 label <- unique(distance.share$distance_group) %>% as.character()
 breaks <- c(0, 1000, 5000, 10000, 50000, 100000, Inf)
 
-trips.1 <- persons %>%
-  st_as_sf(coords = c("first_act_x", "first_act_y"), crs = 25832) %>%
-  st_filter(shp) %>%
-  select(person) %>%
-  left_join(trips, by = "person") %>%
+#trips.1 <- persons %>%
+#  st_as_sf(coords = c("first_act_x", "first_act_y"), crs = 25832) %>%
+ # st_filter(shp) %>%
+  #select(person) %>%
+  #left_join(trips, by = "person") %>%
+  #mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
+  #filter(!is.na(distance_group))
+
+trips.1 <- trips %>%
   mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
   filter(!is.na(distance_group))
 
@@ -143,4 +147,10 @@ mid.sum <- distance.share %>%
 
 compare <- bind_rows(mid.sum, sum) %>%
   group_by(src) %>%
-  mutate(total = sum(n))
+  select(distance_group, src, share) %>%
+  pivot_wider(names_from = "src", values_from = "share") %>%
+  left_join(sum, by = "distance_group") %>%
+  select(-src)  %>%
+  mutate(total = sum(n)) %>%
+  mutate(trips_needed = mid * total,
+         diff = trips_needed - n)
