@@ -105,3 +105,23 @@ plt.2 <- ggplot(modal.share, aes(x = mode, y = share, fill = mode)) +
   
 save_plot_as_jpg(plt.2, "MiD_Modal_Share")
 save_plot_as_jpg(plt.1, "MiD_Distance_Share")
+
+#### analyse of trips per distance group and compare to matsim trips ####
+TRIPS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_trips.csv.gz"
+trips <- read_csv2(TRIPS)
+
+label <- unique(distance.share$distance_group) %>% as.character()
+breaks <- c(0, 1000, 5000, 10000, 50000, 100000, Inf)
+
+trips.1 <- trips %>%
+  mutate(dist_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
+  filter(!is.na(dist_group))
+
+sum <- trips.1  %>%
+  group_by(dist_group) %>%
+  summarise(n = n())
+
+mid.sum <- distance.share %>%
+  select(distance_group, n_trips) %>%
+  group_by(distance_group) %>%
+  summarise(n = sum(n_trips))
