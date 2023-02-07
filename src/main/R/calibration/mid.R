@@ -107,21 +107,40 @@ save_plot_as_jpg(plt.2, "MiD_Modal_Share")
 save_plot_as_jpg(plt.1, "MiD_Distance_Share")
 
 #### analyse of trips per distance group and compare to matsim trips ####
+library(sf)
 TRIPS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_trips.csv.gz"
+PERSONS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_persons.csv.gz"
+SHP <- "Y:/zoerner/matsim-vulkaneifel/input/dilutionArea/dilutionArea.shp"
+shp <- st_read(SHP)
 trips <- read_csv2(TRIPS)
+persons <- read_csv2(PERSONS)
 
 label <- unique(distance.share$distance_group) %>% as.character()
 breaks <- c(0, 1000, 5000, 10000, 50000, 100000, Inf)
 
-trips.1 <- trips %>%
-  mutate(dist_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
-  filter(!is.na(dist_group))
+trips.1 <- persons %>%
+  st_as_sf(coords = c("first_act_x", "first_act_y"), crs = 25832) %>%
+  st_filter(shp) %>%
+  select(person) %>%
+  left_join(trips, by = "person") %>%
+  mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
+  filter(!is.na(distance_group))
 
 sum <- trips.1  %>%
-  group_by(dist_group) %>%
-  summarise(n = n())
+  group_by(distance_group) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  mutate(share = n / sum(n),
+         src = "sim")
 
 mid.sum <- distance.share %>%
   select(distance_group, n_trips) %>%
   group_by(distance_group) %>%
-  summarise(n = sum(n_trips))
+  summarise(n = sum(n_trips)) %>%
+  ungroup() %>%
+  mutate(share = n / sum(n),
+         src = "mid")
+
+compare <- bind_rows(mid.sum, sum) %>%
+  group_by(src) %>%
+  mutate(total = sum(n))
