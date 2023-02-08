@@ -109,22 +109,22 @@ save_plot_as_jpg(plt.1, "MiD_Distance_Share")
 #### analyse of trips per distance group and compare to matsim trips ####
 library(sf)
 TRIPS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_trips.csv.gz"
-PERSONS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_persons.csv.gz"
+HOMES <- "C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/input/vulkaneifel-v1.1-homes.csv"
 SHP = "C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/scenario/open-vulkaneifel-scenario/vulkaneifel-v1.0-25pct/dilutionArea/dilutionArea.shp"
 shp <- st_read(SHP)
 trips <- read_csv2(TRIPS)
-persons <- read_csv2(PERSONS)
+persons <- read_csv(HOMES)
 
 label <- unique(distance.share$distance_group) %>% as.character()
 breaks <- c(0, 1000, 5000, 10000, 50000, 100000, Inf)
 
-#trips.1 <- persons %>%
-#  st_as_sf(coords = c("first_act_x", "first_act_y"), crs = 25832) %>%
- # st_filter(shp) %>%
-  #select(person) %>%
-  #left_join(trips, by = "person") %>%
-  #mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
-  #filter(!is.na(distance_group))
+trips.1 <- persons %>%
+  st_as_sf(coords = c("home_x", "home_y"), crs = 25832) %>%
+  st_filter(shp) %>%
+  select(person) %>%
+  left_join(trips, by = "person") %>%
+  mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
+  filter(!is.na(distance_group))
 
 trips.1 <- trips %>%
   mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
