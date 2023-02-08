@@ -25,7 +25,7 @@
 	<description>A transport model of the district of Vulkaneifel and its surroundings</description>
 
 	<properties>
-		<main.class>org.matsim.run.VulkaneifelApplication</main.class>
+		<main.class>run.VulkaneifelApplication</main.class>
 
 		<!-- Don't modify, will use the same version as parent -->
 		<matsim.version>${project.parent.version}</matsim.version>
@@ -55,6 +55,16 @@
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>application</artifactId>
 			<version>${matsim.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.matsim.contrib</groupId>
+					<artifactId>noise</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.github.matsim-org</groupId>
+					<artifactId>gtfs2matsim</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Custom dependencies -->
@@ -84,6 +94,18 @@
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>freight</artifactId>
 			<version>${matsim.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.matsim-org</groupId>
+			<artifactId>gtfs2matsim</artifactId>
+			<version>master-33809c4f0f-1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.matsim</groupId>
+					<artifactId>matsim</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Test dependencies -->
