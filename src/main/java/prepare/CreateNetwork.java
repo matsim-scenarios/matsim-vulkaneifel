@@ -43,8 +43,9 @@ public class CreateNetwork implements MATSimAppCommand {
 
     private static final Logger log = LogManager.getLogger(CreateNetwork.class);
     private static final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation("EPSG:4326", "EPSG:25832");
-    private static final Set<String> carRideBike = Set.of(TransportMode.car, TransportMode.ride, TransportMode.bike);
-    private static final Set<String> carRide = Set.of(TransportMode.car, TransportMode.ride);
+
+    private static final Set<String> carOnlyModes = Set.of(TransportMode.car, TransportMode.ride, "freight");
+    private static final Set<String> notCarOnlyModes = Set.of(TransportMode.car, TransportMode.ride, "freight", TransportMode.bike);
 
     public static void main(String[] args) {
         System.exit(new CommandLine(new CreateNetwork()).execute(args));
@@ -132,9 +133,9 @@ public class CreateNetwork implements MATSimAppCommand {
     private void setAllowedMode(Link link, Map<String, String> tags) {
 
         if (isCarOnly(tags)) {
-            link.setAllowedModes(carRide);
+            link.setAllowedModes(carOnlyModes);
         } else {
-            link.setAllowedModes(carRideBike);
+            link.setAllowedModes(notCarOnlyModes);
         }
     }
 
