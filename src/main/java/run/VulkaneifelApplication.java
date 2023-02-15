@@ -1,6 +1,7 @@
 package run;
 
 import org.matsim.application.MATSimApplication;
+import org.matsim.application.options.SampleOptions;
 import org.matsim.application.prepare.CreateLandUseShp;
 import org.matsim.application.prepare.freight.tripExtraction.ExtractRelevantFreightTrips;
 import org.matsim.application.prepare.population.*;
@@ -15,12 +16,15 @@ import java.util.List;
 
 @CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version="1.1")
 @MATSimApplication.Prepare({
-        CreateNetwork.class, CreateTransitScheduleFromGtfs.class, CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class,
+        CreateNetwork.class, CreateTransitScheduleFromGtfs.class, CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class, ExtractHomeCoordinates.class,
         MergeTransitSchedules.class, TrajectoryToPlans.class, GenerateShortDistanceTrips.class, CleanPopulation.class, ResolveGridCoordinates.class, MergePopulations.class,
         DownSamplePopulation.class, ExtractRelevantFreightTrips.class, FixSubtourModes.class, AdjustActivityToLinkDistances.class, CreateLandUseShp.class
 })
 
 public class VulkaneifelApplication extends MATSimApplication {
+
+    @CommandLine.Mixin
+    private final SampleOptions sample = new SampleOptions(25, 1);
 
     public static void main(String[] args) {
         MATSimApplication.run(VulkaneifelApplication.class, args);
@@ -46,6 +50,13 @@ public class VulkaneifelApplication extends MATSimApplication {
             config.planCalcScore().addActivityParams(new PlanCalcScoreConfigGroup.ActivityParams("shopping_" + ii).setTypicalDuration(ii)
                     .setOpeningTime(8. * 3600.).setClosingTime(20. * 3600.));
         }
+
+        config.controler().setOutputDirectory(sample.adjustName(config.controler().getOutputDirectory()));
+        config.plans().setInputFile(sample.adjustName(config.plans().getInputFile()));
+        config.controler().setRunId(sample.adjustName(config.controler().getRunId()));
+
+        config.qsim().setFlowCapFactor(sample.getSize() / 100.0);
+        config.qsim().setStorageCapFactor(sample.getSize() / 100.0);
 
         config.plansCalcRoute().setAccessEgressType(PlansCalcRouteConfigGroup.AccessEgressType.accessEgressModeToLink);
         config.qsim().setUsingTravelTimeCheckInTeleportation(true);
