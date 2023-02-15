@@ -1,4 +1,3 @@
-SHP := NRW-Sued-Rlp-Saar.shp
 S := vulkaneifel
 V := v1.1
 CRS := EPSG:25832
@@ -49,39 +48,58 @@ input/$(S)-$(V)-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutio
 		
 #create transit schedule
 input/$(S)-$(V)-transitSchedule.xml.gz: input/temp/$(S)-$(V)-network.xml.gz
+ #create big bus schedule as template for regional train
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
-    		../gtfs/regio-s-train-gtfs-2021-11-14.zip\
-    		../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-    		--network input/$(S)-$(V)-network.xml.gz\
-    		--name $(S)-$(V)\
-    		--date "2021-11-24"\
-    		--target-crs EPSG:25832\
-    		--shp input/shp/$(SHP)\
-    		--output input/temp\
+			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
+			--network input/$(S)-$(V)-network.xml.gz\
+			--name $(S)-$(V)-template\
+			--date "2021-11-24"\
+			--target-crs EPSG:25832\
+			--output input/temp\
 
 #create train line
 	java -jar $(JAR) prepare create-train-line	\
 		--network input/temp/$(S)-$(V)-network-with-pt.xml.gz	\
-		--schedule input/temp/$(S)-$(V)-transitSchedule.xml.gz	\
-		--vehicles input/temp/$(S)-$(V)-transitVehicles.xml.gz	\
+		--schedule input/temp/$(S)-$(V)-template-transitSchedule.xml.gz	\
+		--vehicles input/temp/$(S)-$(V)-template-transitVehicles.xml.gz	\
 		--shp $(DILUTION_AREA)\
 		--shp-crs EPSG:25832\
-        --target-crs EPSG:25832\
+		--target-crs EPSG:25832\
 		--name $(S)-$(V)\
 		--output input/temp\
 
+	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
+    		../gtfs/regio-s-train-gtfs-2021-11-14.zip\
+    		--network input/$(S)-$(V)-network.xml.gz\
+    		--name $(S)-$(V)-train\
+    		--date "2021-11-24"\
+    		--target-crs EPSG:25832\
+    		--output input/temp\
+
+#create bus schedule for Rheinland-Pfalz only
+	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
+			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
+			--network input/$(S)-$(V)-network.xml.gz\
+			--name $(S)-$(V)-bus\
+			--date "2021-11-24"\
+			--target-crs EPSG:25832\
+			--shp input/shp/rheinland-pfalz-210101-free.shp.zip\
+			--output input/temp\
+
 #remove sev line from small schedule
 	java -jar $(JAR) prepare remove-bus-line\
-		--schedule input/temp/$(S)-$(V)-transitSchedule.xml.gz\
-		--name $(S)-$(V)\
+		--schedule input/temp/$(S)-$(V)-bus-transitSchedule.xml.gz\
+		--name $(S)-$(V)-bus\
 		--output input/temp\
 		--lineId SEV---1747\
 
 #merge regional train line into complete schedule
 	java -jar $(JAR) prepare merge-transit-schedules\
-		input/temp/$(S)-$(V)-transitSchedule.xml.gz\
+		input/temp/$(S)-$(V)-train-transitSchedule.xml.gz\
+		input/temp/$(S)-$(V)-bus-without-SEV-transitSchedule.xml.gz\
 		input/temp/$(S)-$(V)-transitSchedule-only-regional-train.xml.gz\
-		--vehicles input/temp/$(S)-$(V)-transitVehicles.xml.gz\
+		--vehicles input/temp/$(S)-$(V)-train-transitVehicles.xml.gz\
+		--vehicles input/temp/$(S)-$(V)-bus-transitVehicles.xml.gz\
 		--vehicles input/temp/$(S)-$(V)-transitVehicles-only-regional-train.xml.gz\
 		--network input/temp/$(S)-$(V)-network.xml.gz\
 		--name $(S)-$(V)\
@@ -101,17 +119,13 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
     	--attributes input/temp/personAttributes.xml.gz\
     	--population input/temp/population.xml.gz\
     	--output input/\
-    	--target-crs EPSG:25832\
-
-#grid2coordinates
-	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/vulkaneifel-v1.0-25pct/vulkaneifel-v1.0.network.xml.gz -o input/temp/$(S)-$(V)-network-with-pt.xml.gz\
+    	--target-crs $(CRS)\
 
 	java -Xmx10G -jar $(JAR) prepare resolve-grid-coords\
     	$@\
     	--grid-resolution 300\
-    	--input-crs EPSG:25832\
+    	--input-crs $(CRS)\
     	--landuse input/landuse/landuse.shp\
-    	--network input/$(S)-$(V)-network.xml.gz\
     	--output $@\
 
 #add short trips to population
@@ -119,8 +133,8 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 		--population $@\
 		--input-crs $(CRS)\
 		--shp $(DILUTION_AREA)\
-		--shp-crs EPSG:25832\
-		--num-trips 13494\
+		--shp-crs $(CRS)\
+		--num-trips 7106\
 		--range 5000\
 		--output $@\
 
@@ -146,9 +160,16 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 		--trips-to-legs\
 		--output $@\
 
+	java -jar $(JAR) prepare extract-home-coordinates $@\
+		--csv input/$S-$V-homes.csv
+
 	java -jar $(JAR) prepare merge-populations\
 		$@\
 		input/freight-trips.xml.gz\
 		 --output $@\
+
+	java -jar $(JAR) prepare downsample-population $@\
+        	 --sample-size 0.25\
+        	 --samples 0.01\
 
 prepare: input/$(S)-$(V)-25pct.plans.xml.gz
