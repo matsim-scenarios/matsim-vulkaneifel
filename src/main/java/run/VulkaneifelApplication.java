@@ -36,7 +36,7 @@ public class VulkaneifelApplication extends MATSimApplication {
         for (long ii = 600; ii <= 97200; ii += 600) {
 
             for (String act : List.of("business", "educ_higher", "educ_kiga", "educ_other", "educ_primary", "educ_secondary",
-                    "educ_tertiary", "errands", "home", "leasure", "shop_daily", "shop_other", "visit", "work")) {
+                    "educ_tertiary", "errands", "home", "leasure", "shop_daily", "shop_other", "visit", "work", "other")) {
                 config.planCalcScore()
                         .addActivityParams(new PlanCalcScoreConfigGroup.ActivityParams(act + "_" + ii).setTypicalDuration(ii));
             }
@@ -50,6 +50,9 @@ public class VulkaneifelApplication extends MATSimApplication {
             config.planCalcScore().addActivityParams(new PlanCalcScoreConfigGroup.ActivityParams("shopping_" + ii).setTypicalDuration(ii)
                     .setOpeningTime(8. * 3600.).setClosingTime(20. * 3600.));
         }
+
+        config.planCalcScore().addActivityParams(new PlanCalcScoreConfigGroup.ActivityParams("freight_start").setTypicalDuration(60 * 15));
+        config.planCalcScore().addActivityParams(new PlanCalcScoreConfigGroup.ActivityParams("freight_end").setTypicalDuration(60 * 15));
 
         config.controler().setOutputDirectory(sample.adjustName(config.controler().getOutputDirectory()));
         config.plans().setInputFile(sample.adjustName(config.plans().getInputFile()));
