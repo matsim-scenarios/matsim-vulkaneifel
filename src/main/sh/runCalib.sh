@@ -5,6 +5,7 @@
 #$ -cwd
 #$ -pe mp 8
 #$ -l mem_free=6G
+#$ -l ../logfile/logfile_calib.log
 #$ -N calib-scenario
 
 date

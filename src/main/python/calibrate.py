@@ -46,15 +46,15 @@ target = {
     "ride": 0.149
 }
 
-region = gpd.read_file("../input/dilutionArea/dilutionArea.shp").set_crs("EPSG:25832")
-homes = pd.read_csv("template-v1.0-homes.csv", dtype={"person": "str"})
+shp = gpd.read_file("../input/dilutionArea/dilutionArea.shp").set_crs("EPSG:25832")
+homes = pd.read_csv("../input/vulkaneifel-v1.1-homes.csv", dtype={"person": "str"})
 
 
 def filter_persons(persons):
     persons = pd.merge(persons, homes, how="inner", left_on="person", right_on="person")
     persons = gpd.GeoDataFrame(persons, geometry=gpd.points_from_xy(persons.home_x, persons.home_y))
 
-    df = gpd.sjoin(persons.set_crs("EPSG:25832"), city, how="inner", op="intersects")
+    df = gpd.sjoin(persons.set_crs("EPSG:25832"), shp, how="inner", op="intersects")
 
     print("Filtered %s persons" % len(df))
 
@@ -69,8 +69,8 @@ def filter_modes(df):
 
 # FIXME: Adjust paths and config
 
-study, obj = calibration.create_mode_share_study("calib", "matsim-vulkaneifel-1.1-SNAPSHOT.jar",
-                                        "../scenarios/metropole-ruhr-v1.0/input/metropole-ruhr-v1.4-3pct.config.xml",
+study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.1-SNAPSHOT.jar",
+                                        "../input/vulkaneifel-v1.1-25pct.config.xml",
                                         modes, target, 
                                         initial_asc=initial,
                                         args="--25pct",
