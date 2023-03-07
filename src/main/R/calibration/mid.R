@@ -77,6 +77,9 @@ modal.share <- distance.share %>%
          share = round(share, 3),
          mode = factor(mode, levels = c("zu Fuß", "Fahrrad", "ÖPNV", "MIV (Mitfahrer)", "MIV (Fahrer)")))
 
+readr::write_csv2(modal.share, file = "C:/Users/ACER/Desktop/Uni/VSP/Vulkaneifel v1.1/data/mode_share.csv")
+readr::write_csv2(distance.share, file = "C:/Users/ACER/Desktop/Uni/VSP/Vulkaneifel v1.1/data/distance_share.csv")
+
 plt.1 <- ggplot(distance.share, aes(x = distance_group, y = share_round, fill = mode)) +
   
   geom_col(col = "black", position = "dodge") +
@@ -108,12 +111,13 @@ save_plot_as_jpg(plt.1, "MiD_Distance_Share")
 
 #### analyse of trips per distance group and compare to matsim trips ####
 library(sf)
-TRIPS <- "C:/Users/ACER/Desktop/Uni/Bachelorarbeit/Daten/matsim-outputs/fleet-size-60-plan-case-1.output_trips.csv.gz"
+#TRIPS <-  "C:/Users/ACER/Desktop/Uni/VSP/Vulkaneifel v1.1/runs/030.output_trips.csv.gz"
+TRIPS <- "C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/output/output-vulkaneifel-v1.1-25pct/vulkaneifel-v1.1-25pct.output_trips.csv.gz"
 HOMES <- "C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/input/vulkaneifel-v1.1-homes.csv"
 SHP = "C:/Users/ACER/IdeaProjects/matsim-vulkaneifel/scenario/open-vulkaneifel-scenario/vulkaneifel-v1.0-25pct/dilutionArea/dilutionArea.shp"
 shp <- st_read(SHP)
 trips <- read_csv2(TRIPS)
-persons <- read_csv(HOMES)
+persons <- read_csv(HOMES, col_types = c("c","d","d"))
 
 label <- unique(distance.share$distance_group) %>% as.character()
 breaks <- c(0, 1000, 5000, 10000, 50000, 100000, Inf)
@@ -130,7 +134,7 @@ trips.1 <- trips %>%
   mutate(distance_group = cut(traveled_distance, labels = label, breaks = breaks)) %>%
   filter(!is.na(distance_group))
 
-sum <- trips.1  %>%
+sim.sum <- trips.1  %>%
   group_by(distance_group) %>%
   summarise(n = n()) %>%
   ungroup() %>%
@@ -138,19 +142,22 @@ sum <- trips.1  %>%
          src = "sim")
 
 mid.sum <- distance.share %>%
-  select(distance_group, n_trips) %>%
+  select(distance_group, n) %>%
   group_by(distance_group) %>%
-  summarise(n = sum(n_trips)) %>%
+  summarise(n = sum(n)) %>%
   ungroup() %>%
   mutate(share = n / sum(n),
          src = "mid")
 
-compare <- bind_rows(mid.sum, sum) %>%
+q <- sum(sim.sum$n)/sum(mid.sum$n)
+
+compare <- bind_rows(mid.sum, sim.sum) %>%
   group_by(src) %>%
   select(distance_group, src, share) %>%
   pivot_wider(names_from = "src", values_from = "share") %>%
-  left_join(sum, by = "distance_group") %>%
+  left_join(mid.sum, by = "distance_group") %>%
   select(-src)  %>%
-  mutate(total = sum(n)) %>%
-  mutate(trips_needed = mid * total,
-         diff = trips_needed - n)
+  mutate(total_mid_weight = sum(n) * q) %>%
+  mutate(trips_suposed = mid * total_mid_weight,
+         trips_in_sim = sim * total_mid_weight,
+         diff = trips_in_sim - trips_suposed)
