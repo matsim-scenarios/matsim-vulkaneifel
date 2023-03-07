@@ -43,7 +43,7 @@ public class RemoveBusLineFromSmallSchedule implements MATSimAppCommand {
 
         transitSchedule.removeTransitLine(sevLine);
 
-        new TransitScheduleWriter(transitSchedule).writeFile(output + "/" + name + "-bus-schedule-without-SEV.xml.gz" );
+        new TransitScheduleWriter(transitSchedule).writeFile(output + "/" + name + "-without-SEV-transitSchedule.xml.gz" );
 
         return 0;
     }
