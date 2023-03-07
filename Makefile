@@ -44,10 +44,10 @@ input/$(S)-$(V)-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutio
 	java -Xmx48G -jar $(JAR) prepare network\
 		--output $@\
 		--osmnetwork input/network.osm.pbf\
-		--veryDetailedArea input/dilutionArea.shp\
+		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
 		
 #create transit schedule
-input/$(S)-$(V)-transitSchedule.xml.gz: input/temp/$(S)-$(V)-network.xml.gz
+input/$(S)-$(V)-transitSchedule.xml.gz: input/$(S)-$(V)-network.xml.gz
  #create big bus schedule as template for regional train
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
 			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
@@ -101,7 +101,7 @@ input/$(S)-$(V)-transitSchedule.xml.gz: input/temp/$(S)-$(V)-network.xml.gz
 		--vehicles input/temp/$(S)-$(V)-train-transitVehicles.xml.gz\
 		--vehicles input/temp/$(S)-$(V)-bus-transitVehicles.xml.gz\
 		--vehicles input/temp/$(S)-$(V)-transitVehicles-only-regional-train.xml.gz\
-		--network input/temp/$(S)-$(V)-network.xml.gz\
+		--network input/$(S)-$(V)-network.xml.gz\
 		--name $(S)-$(V)\
 		--output input\
 
@@ -134,8 +134,17 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 		--input-crs $(CRS)\
 		--shp $(DILUTION_AREA)\
 		--shp-crs $(CRS)\
-		--num-trips 7106\
+		--num-trips 7500\
 		--range 5000\
+		--output $@\
+
+	java -jar $(JAR) prepare generate-short-distance-trips\
+		--population $@\
+		--input-crs $(CRS)\
+		--shp $(DILUTION_AREA)\
+		--shp-crs $(CRS)\
+		--num-trips 6000\
+		--range 1000\
 		--output $@\
 
 	java -jar $(JAR) prepare adjust-activity-to-link-distances\
