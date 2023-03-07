@@ -1,6 +1,7 @@
 package run;
 
 import org.matsim.application.MATSimApplication;
+import org.matsim.application.analysis.CheckPopulation;
 import org.matsim.application.options.SampleOptions;
 import org.matsim.application.prepare.CreateLandUseShp;
 import org.matsim.application.prepare.freight.tripExtraction.ExtractRelevantFreightTrips;
@@ -20,6 +21,8 @@ import java.util.List;
         MergeTransitSchedules.class, TrajectoryToPlans.class, GenerateShortDistanceTrips.class, CleanPopulation.class, ResolveGridCoordinates.class, MergePopulations.class,
         DownSamplePopulation.class, ExtractRelevantFreightTrips.class, FixSubtourModes.class, AdjustActivityToLinkDistances.class, CreateLandUseShp.class
 })
+
+@MATSimApplication.Analysis({CheckPopulation.class})
 
 public class VulkaneifelApplication extends MATSimApplication {
 
