@@ -59,6 +59,7 @@ public class MergeTransitSchedules implements MATSimAppCommand {
     public Integer call() throws Exception {
 
         Config emptyConfig = ConfigUtils.createConfig();
+        emptyConfig.network().setInputFile(network);
 
         if(transitSchedules.size() != transitVehicles.size()){
             log.info("There are more or less transit schedules than vehicles!");
@@ -80,8 +81,6 @@ public class MergeTransitSchedules implements MATSimAppCommand {
         var completeSchedule = mergeSchedule(schedules);
 
         var finalVehicles = mergeVehicles(vehicles);
-
-        emptyConfig.network().setInputFile(network);
 
         Scenario scenario = mergeScheduleWithNetwork(emptyConfig, NetworkUtils.readNetwork(network, emptyConfig), completeSchedule);
 
