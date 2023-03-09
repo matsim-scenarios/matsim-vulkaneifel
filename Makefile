@@ -160,7 +160,10 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
  		--input $@\
  		--output $@\
 
-#clean population
+	java -jar $(JAR) prepare population\
+		$@\
+		--output $@\
+
 	java -jar $(JAR) prepare clean-population	\
 		--plans $@\
 		--remove-routes\
