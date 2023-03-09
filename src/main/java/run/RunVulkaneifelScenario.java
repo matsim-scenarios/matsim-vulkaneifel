@@ -25,6 +25,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import utils.PredeterminedLinkSelectionModule;
 import utils.RebalanceStudyUtils;
 
+@Deprecated
 public class RunVulkaneifelScenario {
     private static final Logger log = LogManager.getLogger(RunVulkaneifelScenario.class);
     private static final String OUTPUT_DIRECTORY_HEADING = "D:\\TU_Berlin\\Projects\\RebalancingStudy_testing\\";

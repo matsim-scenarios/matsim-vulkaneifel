@@ -64,7 +64,7 @@
 		<param name="numberOfThreads" value="16"/>
 		<param name="startTime" value="00:00:00"/>
 		<param name="stuckTime" value="30.0"/>
-		<param name="trafficDynamics" value="queue"/>
+		<param name="trafficDynamics" value="kinematicWaves"/>
 		<param name="linkDynamics" value="PassingQ"/>
 		<param name="useLanes" value="false"/>
 
@@ -73,7 +73,7 @@
 	</module>
 
 	<module name="strategy">
-		<param name="fractionOfIterationsToDisableInnovation" value="0.9"/>
+		<param name="fractionOfIterationsToDisableInnovation" value="0.8"/>
 		<parameterset type="strategysettings">
 			<param name="strategyName" value="ChangeExpBeta"/>
 			<param name="subpopulation" value="person"/>
@@ -136,11 +136,11 @@
 	</module>
 
 	<module name="vspExperimental">
-		<param name="vspDefaultsCheckingLevel" value="warn"/>
+		<param name="vspDefaultsCheckingLevel" value="abort"/>
 	</module>
 
 	<module name="planCalcScore">
-		<param name="fractionOfIterationsToStartScoreMSA" value="1.0"/>
+		<param name="fractionOfIterationsToDisableInnovation" value="0.8"/>
 		<parameterset type="scoringParameters">
 
 			<parameterset type="modeParams">
