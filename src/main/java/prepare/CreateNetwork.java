@@ -25,123 +25,116 @@ import java.util.Map;
 import java.util.Set;
 
 @CommandLine.Command(
-        name="network",
-        description = "Create matsim network from osm data",
-        showDefaultValues = true
+		name="network",
+		description = "Create matsim network from osm data",
+		showDefaultValues = true
 )
 
 public class CreateNetwork implements MATSimAppCommand {
 
-    @CommandLine.Option(names = "--osmnetwork", description = "path to osm data files", required = true)
-    private String osmnetwork;
+	@CommandLine.Option(names = "--osmnetwork", description = "path to osm data files", required = true)
+	private String osmnetwork;
 
-    @CommandLine.Option(names = "--output", description = "path to output file", required = true)
-    private String output;
+	@CommandLine.Option(names = "--output", description = "path to output file", required = true)
+	private String output;
 
-    @CommandLine.Option(names = "--veryDetailedArea", description = "path to shape that covers very detailed network", required = true)
-    private String veryDetailedArea;
+	@CommandLine.Option(names = "--veryDetailedArea", description = "path to shape that covers very detailed network", required = true)
+	private String veryDetailedArea;
 
-    private static final Logger log = LogManager.getLogger(CreateNetwork.class);
-    private static final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation("EPSG:4326", "EPSG:25832");
+	private static final Logger log = LogManager.getLogger(CreateNetwork.class);
+	private static final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation("EPSG:4326", "EPSG:25832");
 
-    private static final Set<String> carOnlyModes = Set.of(TransportMode.car, TransportMode.ride, "freight");
-    private static final Set<String> notCarOnlyModes = Set.of(TransportMode.car, TransportMode.ride, "freight", TransportMode.bike);
+	private static final Set<String> carOnlyModes = Set.of(TransportMode.car, TransportMode.ride, "freight");
+	private static final Set<String> notCarOnlyModes = Set.of(TransportMode.car, TransportMode.ride, "freight", TransportMode.bike);
 
-    public static void main(String[] args) {
-        System.exit(new CommandLine(new CreateNetwork()).execute(args));
-    }
+	public static void main(String[] args) {
+		System.exit(new CommandLine(new CreateNetwork()).execute(args));
+	}
 
-    @Override
-    public Integer call() {
+	@Override
+	public Integer call() {
 
-        Geometry veryDetailedAreaBox = getVeryDetailedAreaBox(veryDetailedArea);
-        Geometry semiDetailedAreaBox = getSemiDetailedAreaBox(veryDetailedAreaBox);
+		Geometry veryDetailedAreaBox = getVeryDetailedAreaBox(veryDetailedArea);
+		Geometry semiDetailedAreaBox = getSemiDetailedAreaBox(veryDetailedAreaBox);
 
-        log.info("Start to parse network. This might not output anything for a while");
-        var network = new SupersonicOsmNetworkReader.Builder()
-                .setCoordinateTransformation(transformation)
-                .setIncludeLinkAtCoordWithHierarchy((coord, level) -> {
-                    if(level <= LinkProperties.LEVEL_PRIMARY) return true;
+		log.info("Start to parse network. This might not output anything for a while");
+		var network = new SupersonicOsmNetworkReader.Builder()
+				.setCoordinateTransformation(transformation)
+				.setIncludeLinkAtCoordWithHierarchy((coord, level) -> {
+					if (level <= LinkProperties.LEVEL_PRIMARY) return true;
+					if (level <= LinkProperties.LEVEL_SECONDARY) return semiDetailedAreaBox
+							.covers(MGC.coord2Point(coord));
+					return veryDetailedAreaBox
+							.covers(MGC.coord2Point(coord));
+				})
+				.setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
+				.build()
+				.read(osmnetwork);
 
-                    if(level <= LinkProperties.LEVEL_SECONDARY) return semiDetailedAreaBox
-                            .covers(MGC.coord2Point(coord));
+		log.info("Finished parsing network. Start Network cleaner.");
+		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.car));
+		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.ride));
+		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
 
-                    return veryDetailedAreaBox
-                            .covers(MGC.coord2Point(coord));
+		log.info("Finished cleaning network. Write network");
+		new NetworkWriter(network).write(this.output);
 
-                })
-                .setAfterLinkCreated((link, tags, direction) -> setAllowedMode(link, tags))
-                .build()
-                .read(osmnetwork);
+		log.info("Finished CreateNetwork. Exiting.");
+		return 0;
+	}
 
-        log.info("Finished parsing network. Start Network cleaner.");
-        new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.car));
-        new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.ride));
-        new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
+	private static Geometry getGeometries(String path){
 
-        log.info("Finished cleaning network. Write network");
-        new NetworkWriter(network).write(this.output);
+		//dilutionArea needs to be a single shape file
+		log.info("reading in very detailed area file from " + path);
 
-        log.info("Finished CreateNetwork. Exiting.");
-        return 0;
-    }
+		if (path == null) {
 
-    private static Geometry getGeometries(String path){
+			log.info("Path to geometry has not been initialized. Returning null...");
+			return null;
+		}
 
-        //dilutionArea needs to be a single shape file
-        log.info("reading in very detailed area file from " + path);
+		return ShapeFileReader.getAllFeatures(path).stream()
+				.map(simpleFeature -> (Geometry) simpleFeature.getDefaultGeometry())
+				.findFirst()
+				.get();
+	}
 
-        if(path == null) {
+	private Geometry getSemiDetailedAreaBox(Geometry veryDetailedAreaBox){
 
-            log.info("Path to geometry has not been initialized. Returning null...");
-            return null;
-        }
+		Point center = veryDetailedAreaBox.getCentroid();
 
-        return ShapeFileReader.getAllFeatures(path).stream()
-                .map(simpleFeature -> (Geometry) simpleFeature.getDefaultGeometry())
-                .findFirst()
-                .get();
-    }
+		double highestDistance = Arrays.stream(veryDetailedAreaBox.getCoordinates())
+				.map(coordinate -> Math.abs(center.getX() - MGC.coordinate2Point(coordinate).getX()))
+				.reduce(Math::max)
+				.get() * 4;
 
-    private Geometry getSemiDetailedAreaBox(Geometry veryDetailedAreaBox){
+		var left = center.getX() - highestDistance;
+		var right = center.getX() + highestDistance;
+		var top = center.getY() + highestDistance;
+		var bottom = center.getY() - highestDistance;
 
-        Point center = veryDetailedAreaBox.getCentroid();
+		var geometryPolygon = new GeometryFactory().createPolygon(new Coordinate[]{
+				new Coordinate(left, top), new Coordinate(right, top), new Coordinate(right, bottom), new Coordinate(left, bottom), new Coordinate(left, top)});
 
-        Double highestDistance = Arrays.stream(veryDetailedAreaBox.getCoordinates())
-                .map(coordinate -> Math.abs(center.getX() - MGC.coordinate2Point(coordinate).getX()))
-                .reduce(Math::max)
-                .get() * 4;
+		return new GeometryFactory().createGeometry(geometryPolygon);
+	}
 
-        var left = center.getX() - highestDistance;
-        var right = center.getX() + highestDistance;
-        var top = center.getY() + highestDistance;
-        var bottom = center.getY() - highestDistance;
+	private Geometry getVeryDetailedAreaBox(String pathToVeryDetailedArea) {
+		Geometry dilutionArea = getGeometries(pathToVeryDetailedArea);
+		return dilutionArea != null ? dilutionArea.getEnvelope() : null;
+	}
 
-        var geometryPolygon = new GeometryFactory().createPolygon(new Coordinate[]{
-                new Coordinate(left, top), new Coordinate(right, top), new Coordinate(right, bottom), new Coordinate(left, bottom), new Coordinate(left, top)});
+	private void setAllowedMode(Link link, Map<String, String> tags) {
+		if (isCarOnly(tags)) {
+			link.setAllowedModes(carOnlyModes);
+		} else {
+			link.setAllowedModes(notCarOnlyModes);
+		}
+	}
 
-        return new GeometryFactory().createGeometry(geometryPolygon);
-    }
-
-    private Geometry getVeryDetailedAreaBox(String pathToVeryDetailedArea) {
-
-        Geometry dilutionArea = getGeometries(pathToVeryDetailedArea);
-        
-        return dilutionArea != null ? dilutionArea.getEnvelope() : null;
-    }
-
-    private void setAllowedMode(Link link, Map<String, String> tags) {
-
-        if (isCarOnly(tags)) {
-            link.setAllowedModes(carOnlyModes);
-        } else {
-            link.setAllowedModes(notCarOnlyModes);
-        }
-    }
-
-    private boolean isCarOnly (Map<String, String> tags) {
-
-        var highwayType = tags.get(OsmTags.HIGHWAY);
-        return highwayType == null || highwayType.equals(OsmTags.MOTORWAY) || highwayType.equals(OsmTags.MOTORWAY_LINK) || highwayType.equals(OsmTags.TRUNK) || highwayType.equals(OsmTags.TRUNK_LINK);
-    }
+	private boolean isCarOnly(Map<String, String> tags) {
+		var highwayType = tags.get(OsmTags.HIGHWAY);
+		return highwayType == null || highwayType.equals(OsmTags.MOTORWAY) || highwayType.equals(OsmTags.MOTORWAY_LINK) || highwayType.equals(OsmTags.TRUNK) || highwayType.equals(OsmTags.TRUNK_LINK);
+	}
 }
