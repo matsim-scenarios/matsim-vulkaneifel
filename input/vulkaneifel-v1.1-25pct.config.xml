@@ -72,8 +72,13 @@
 		<param name="insertingWaitingVehiclesBeforeDrivingVehicles" value="true"/>
 	</module>
 
+	<module name="ReplanningAnnealer">
+		<param name="activateAnnealingModule" value="true"/>
+		<!--        <param name="shapeFactor" value="0.05"/>-->
+	</module>
+
 	<module name="strategy">
-		<param name="fractionOfIterationsToDisableInnovation" value="0.8"/>
+		<param name="fractionOfIterationsToDisableInnovation" value="0.9"/>
 		<parameterset type="strategysettings">
 			<param name="strategyName" value="ChangeExpBeta"/>
 			<param name="subpopulation" value="person"/>
@@ -82,7 +87,7 @@
 		<parameterset type="strategysettings">
 			<param name="strategyName" value="ReRoute"/>
 			<param name="subpopulation" value="person"/>
-			<param name="weight" value="0.10"/>
+			<param name="weight" value="0.1"/>
 		</parameterset>
 		<parameterset type="strategysettings">
 			<param name="strategyName" value="SubtourModeChoice"/>
@@ -140,7 +145,7 @@
 	</module>
 
 	<module name="planCalcScore">
-		<param name="fractionOfIterationsToStartScoreMSA" value="0.8"/>
+		<param name="fractionOfIterationsToStartScoreMSA" value="0.9"/>
 		<parameterset type="scoringParameters">
 
 			<parameterset type="modeParams">
