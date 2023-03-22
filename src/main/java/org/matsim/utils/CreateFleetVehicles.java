@@ -116,8 +116,8 @@ public class CreateFleetVehicles implements MATSimAppCommand {
 			try (CSVParser parser = new CSVParser(Files.newBufferedReader(Path.of(depotsPath), StandardCharsets.UTF_8),
 					CSVFormat.DEFAULT.withDelimiter(',').withFirstRecordAsHeader())) {
 				links.clear();
-				for (CSVRecord record : parser) {
-					Link depotLink = network.getLinks().get(Id.createLinkId(record.get(0)));
+				for (CSVRecord r : parser) {
+					Link depotLink = network.getLinks().get(Id.createLinkId(r.get(0)));
 					links.add(depotLink);
 				}
 			}

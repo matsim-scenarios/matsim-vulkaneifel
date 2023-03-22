@@ -148,22 +148,22 @@ public final class SchoolTripsAnalysis implements MATSimAppCommand {
 			int numOfTripsServed = 0;
 			try (CSVParser parser = new CSVParser(Files.newBufferedReader(tripsFile),
 					CSVFormat.DEFAULT.withDelimiter(';').withFirstRecordAsHeader())) {
-				for (CSVRecord record : parser.getRecords()) {
-					String personIdString = record.get(1);
-					Link fromLink = network.getLinks().get(Id.createLinkId(record.get(3)));
+				for (CSVRecord r : parser.getRecords()) {
+					String personIdString = r.get(1);
+					Link fromLink = network.getLinks().get(Id.createLinkId(r.get(3)));
 					Coord fromCoord = fromLink.getToNode().getCoord();
-					Link toLink = network.getLinks().get(Id.createLinkId(record.get(6)));
+					Link toLink = network.getLinks().get(Id.createLinkId(r.get(6)));
 					Coord toCoord = toLink.getToNode().getCoord();
-					double departureTime = Double.parseDouble(record.get(0));
+					double departureTime = Double.parseDouble(r.get(0));
 					double initialScheduledBoardingTime = initialDepartureMap.getOrDefault(Id.createPersonId(personIdString), Double.NaN);
 					VrpPathWithTravelData path = VrpPaths.calcAndCreatePath(fromLink, toLink, departureTime, router, travelTime);
 					double estimatedDirectInVehicleTime = path.getTravelTime();
 					double estimatedDirectTravelDistance = VrpPaths.calcDistance(path);
-					double waitingTime = Double.parseDouble(record.get(9));
+					double waitingTime = Double.parseDouble(r.get(9));
 					double boardingTime = departureTime + waitingTime;
-					double actualInVehicleTime = Double.parseDouble(record.get(11));
+					double actualInVehicleTime = Double.parseDouble(r.get(11));
 					double totalTravelTime = waitingTime + actualInVehicleTime;
-					double actualTravelDistance = Double.parseDouble(record.get(12));
+					double actualTravelDistance = Double.parseDouble(r.get(12));
 					double euclideanDistance = DistanceUtils.calculateDistance(fromCoord, toCoord);
 					double onboardDelayRatio = actualInVehicleTime / estimatedDirectInVehicleTime - 1;
 					double detourRatioDistance = actualTravelDistance / estimatedDirectTravelDistance - 1;
@@ -212,9 +212,9 @@ public final class SchoolTripsAnalysis implements MATSimAppCommand {
 					CSVFormat.DEFAULT.withDelimiter(';').withFirstRecordAsHeader())) {
 				List<CSVRecord> records = parser.getRecords();
 				int size = records.size();
-				CSVRecord record = records.get(size - 1);
-				fleetSize = Integer.parseInt(record.get(2));
-				totalFleetDistance = Double.parseDouble(record.get(3));
+				CSVRecord r = records.get(size - 1);
+				fleetSize = Integer.parseInt(r.get(2));
+				totalFleetDistance = Double.parseDouble(r.get(3));
 			}
 
 			int totalRequests;
@@ -222,8 +222,8 @@ public final class SchoolTripsAnalysis implements MATSimAppCommand {
 					CSVFormat.DEFAULT.withDelimiter(';').withFirstRecordAsHeader())) {
 				List<CSVRecord> records = parser.getRecords();
 				int size = records.size();
-				CSVRecord record = records.get(size - 1);
-				totalRequests = Integer.parseInt(record.get(2)) + Integer.parseInt(record.get(15));
+				CSVRecord r = records.get(size - 1);
+				totalRequests = Integer.parseInt(r.get(2)) + Integer.parseInt(r.get(15));
 			}
 
 			CSVPrinter tsvWriterKPI = new CSVPrinter(new FileWriter(outputStatsPath.toString()), CSVFormat.TDF);

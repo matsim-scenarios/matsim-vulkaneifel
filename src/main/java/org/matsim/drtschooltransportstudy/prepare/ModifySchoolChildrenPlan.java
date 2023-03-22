@@ -107,8 +107,8 @@ public class ModifySchoolChildrenPlan implements MATSimAppCommand {
 			// Read CSV file and add DRT stops links to the list
 			try (CSVParser parser = new CSVParser(Files.newBufferedReader(Path.of(drtStops)),
 					CSVFormat.DEFAULT.withDelimiter(',').withFirstRecordAsHeader())) {
-				for (CSVRecord record : parser.getRecords()) {
-					Id<Link> linkId = Id.createLinkId(record.get(1));
+				for (CSVRecord r : parser.getRecords()) {
+					Id<Link> linkId = Id.createLinkId(r.get(1));
 					drtStopLinks.add(network.getLinks().get(linkId));
 				}
 			}

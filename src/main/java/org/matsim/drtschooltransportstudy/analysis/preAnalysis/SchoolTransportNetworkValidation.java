@@ -3,6 +3,7 @@ package org.matsim.drtschooltransportstudy.analysis.preAnalysis;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
@@ -32,7 +33,10 @@ import java.util.List;
 
 /**
  * Class to validate the drt school study routing by travel time.
- * */
+ *
+ * @deprecated There is a similar class in the application contrib
+ */
+@Deprecated
 public class SchoolTransportNetworkValidation implements MATSimAppCommand {
 	@CommandLine.Option(names = "--api", description = "path to network file", defaultValue = "GOOGLE_MAP")
 	private API api;
@@ -60,7 +64,7 @@ public class SchoolTransportNetworkValidation implements MATSimAppCommand {
 	}
 	//TODO make the enum in TravelTimeAnalysis class public
 
-	private final String mode = "car";
+	private static final String mode = TransportMode.car;
 
 	public static void main(String[] args) {
 		new SchoolTransportNetworkValidation().execute(args);
