@@ -1,4 +1,5 @@
-S := vulkaneifel
+
+N := vulkaneifel
 V := v1.1
 CRS := EPSG:25832
 DILUTION_AREA := input/dilutionArea/dilutionArea.shp
@@ -40,38 +41,38 @@ input/landuse/landuse.shp: ${SHP_FILES}
 		--output $@\
 
 #create network from osm.pbf
-input/$(S)-$(V)-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutionArea.shp
+input/$N-$V-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutionArea.shp
 	java -Xmx48G -jar $(JAR) prepare network\
 		--output $@\
 		--osmnetwork input/network.osm.pbf\
 		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
 		
 #create transit schedule
-input/$(S)-$(V)-transitSchedule.xml.gz: input/$(S)-$(V)-network.xml.gz
+input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz
  #create big bus schedule as template for regional train
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
 			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-			--network input/$(S)-$(V)-network.xml.gz\
-			--name $(S)-$(V)-template\
+			--network input/$N-$V-network.xml.gz\
+			--name $N-$V-template\
 			--date "2021-11-24"\
 			--target-crs EPSG:25832\
 			--output input/temp\
 
 #create train line
 	java -jar $(JAR) prepare create-train-line	\
-		--network input/temp/$(S)-$(V)-network-with-pt.xml.gz	\
-		--schedule input/temp/$(S)-$(V)-template-transitSchedule.xml.gz	\
-		--vehicles input/temp/$(S)-$(V)-template-transitVehicles.xml.gz	\
+		--network input/temp/$N-$V-network-with-pt.xml.gz	\
+		--schedule input/temp/$N-$V-template-transitSchedule.xml.gz	\
+		--vehicles input/temp/$N-$V-template-transitVehicles.xml.gz	\
 		--shp $(DILUTION_AREA)\
 		--shp-crs EPSG:25832\
 		--target-crs EPSG:25832\
-		--name $(S)-$(V)\
+		--name $N-$V\
 		--output input/temp\
 
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
     		../gtfs/regio-s-train-gtfs-2021-11-14.zip\
-    		--network input/$(S)-$(V)-network.xml.gz\
-    		--name $(S)-$(V)-train\
+    		--network input/$N-$V-network.xml.gz\
+    		--name $N-$V-train\
     		--date "2021-11-24"\
     		--target-crs EPSG:25832\
     		--output input/temp\
@@ -79,8 +80,8 @@ input/$(S)-$(V)-transitSchedule.xml.gz: input/$(S)-$(V)-network.xml.gz
 #create bus schedule for Rheinland-Pfalz only
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
 			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-			--network input/$(S)-$(V)-network.xml.gz\
-			--name $(S)-$(V)-bus\
+			--network input/$N-$V-network.xml.gz\
+			--name $N-$V-bus\
 			--date "2021-11-24"\
 			--target-crs EPSG:25832\
 			--shp input/shp/rheinland-pfalz-210101-free.shp.zip\
@@ -88,24 +89,24 @@ input/$(S)-$(V)-transitSchedule.xml.gz: input/$(S)-$(V)-network.xml.gz
 
 #remove sev line from small schedule
 	java -jar $(JAR) prepare remove-bus-line\
-		--schedule input/temp/$(S)-$(V)-bus-transitSchedule.xml.gz\
-		--name $(S)-$(V)-bus\
+		--schedule input/temp/$N-$V-bus-transitSchedule.xml.gz\
+		--name $N-$V-bus\
 		--output input/temp\
 		--lineId SEV---1747\
 
 #merge regional train line into complete schedule
 	java -jar $(JAR) prepare merge-transit-schedules\
-		input/temp/$(S)-$(V)-train-transitSchedule.xml.gz\
-		input/temp/$(S)-$(V)-bus-without-SEV-transitSchedule.xml.gz\
-		input/temp/$(S)-$(V)-transitSchedule-only-regional-train.xml.gz\
-		--vehicles input/temp/$(S)-$(V)-train-transitVehicles.xml.gz\
-		--vehicles input/temp/$(S)-$(V)-bus-transitVehicles.xml.gz\
-		--vehicles input/temp/$(S)-$(V)-transitVehicles-only-regional-train.xml.gz\
-		--network input/$(S)-$(V)-network.xml.gz\
-		--name $(S)-$(V)\
+		input/temp/$N-$V-train-transitSchedule.xml.gz\
+		input/temp/$N-$V-bus-without-SEV-transitSchedule.xml.gz\
+		input/temp/$N-$V-transitSchedule-only-regional-train.xml.gz\
+		--vehicles input/temp/$N-$V-train-transitVehicles.xml.gz\
+		--vehicles input/temp/$N-$V-bus-transitVehicles.xml.gz\
+		--vehicles input/temp/$N-$V-transitVehicles-only-regional-train.xml.gz\
+		--network input/$N-$V-network.xml.gz\
+		--name $N-$V\
 		--output input\
 
-input/freight-trips.xml.gz: input/$(S)-$(V)-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz input/dilutionArea.shp
+input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz input/dilutionArea.shp
 	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
 		 --network input/temp/germany-europe-network.xml.gz\
 		 --input-crs EPSG:5677\
@@ -113,9 +114,9 @@ input/freight-trips.xml.gz: input/$(S)-$(V)-network.xml.gz input/temp/german_fre
 		 --shp $(DILUTION_AREA)\
 		 --output $@
 
-input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz  input/$(S)-$(V)-transitSchedule.xml.gz
+input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz  input/$N-$V-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
-    	--name $(S)-$(V)	--sample-size 0.25\
+    	--name $N-$V	--sample-size 0.25\
     	--attributes input/temp/personAttributes.xml.gz\
     	--population input/temp/population.xml.gz\
     	--output input/\
@@ -142,7 +143,7 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 		--shp $(DILUTION_AREA)\
 		--scale 1.15\
 		--input-crs $(CRS)\
-		--network input/$(S)-$(V)-network.xml.gz\
+		--network input/$N-$V-network.xml.gz\
 		--output $@\
 
 	 java -jar $(JAR) prepare fix-subtour-modes\
@@ -155,7 +156,7 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 		--output $@\
 
 	java -jar $(JAR) prepare extract-home-coordinates $@\
-		--csv input/$S-$V-homes.csv
+		--csv input/$N-$V-homes.csv
 
 	java -jar $(JAR) prepare merge-populations\
 		$@\
@@ -163,7 +164,7 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 		 --output $@\
 
 	java -jar $(JAR) prepare downsample-population $@\
-        	 --sample-size 0.25\
-        	 --samples 0.01\
+	 	--sample-size 0.25\
+        --samples 0.01\
 
-prepare: input/$(S)-$(V)-25pct.plans.xml.gz
+prepare: input/$N-$V-25pct.plans.xml.gz
