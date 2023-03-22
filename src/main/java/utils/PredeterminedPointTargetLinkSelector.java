@@ -84,7 +84,7 @@ public class PredeterminedPointTargetLinkSelector implements DrtZoneTargetLinkSe
 				try {
 					shapeFileAsURL = new URL(pathToShapeFile);
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					log.warn(e.getMessage());
 				}
 				features = ShapeFileReader.getAllFeatures(shapeFileAsURL);
 			} else {

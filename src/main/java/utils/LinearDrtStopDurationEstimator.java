@@ -7,13 +7,13 @@ import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 
 public record LinearDrtStopDurationEstimator(double fixedStopDuration) implements IncrementalStopDurationEstimator {
 
-    @Override
-    public double calcForPickup(DvrpVehicle vehicle, DrtStopTask stopTask, DrtRequest pickupRequest) {
-        return fixedStopDuration;
-    }
+	@Override
+	public double calcForPickup(DvrpVehicle vehicle, DrtStopTask stopTask, DrtRequest pickupRequest) {
+		return fixedStopDuration;
+	}
 
-    @Override
-    public double calcForDropoff(DvrpVehicle vehicle, DrtStopTask stopTask, DrtRequest dropoffRequest) {
-        return fixedStopDuration;
-    }
+	@Override
+	public double calcForDropoff(DvrpVehicle vehicle, DrtStopTask stopTask, DrtRequest dropoffRequest) {
+		return fixedStopDuration;
+	}
 }

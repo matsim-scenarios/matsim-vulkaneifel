@@ -17,8 +17,10 @@ import org.matsim.core.router.FastAStarEuclideanFactory;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
-
-public class VehicleAssignmentTools {
+/**
+ * Helper class to assign drt vehicles to a request.
+ * */
+public final class VehicleAssignmentTools {
 	private final LeastCostPathCalculator leastCostPathCalculator;
 	private final TravelTime travelTime;
 	private final DrtTaskFactory taskFactory;
@@ -28,7 +30,7 @@ public class VehicleAssignmentTools {
 	private double scheduledArrivalTime;
 
 	public VehicleAssignmentTools(TravelTime travelTime, DrtTaskFactory taskFactory, DrtConfigGroup drtCfg,
-                                  Network network, TravelDisutility travelDisutility) {
+								  Network network, TravelDisutility travelDisutility) {
 		this.travelTime = travelTime;
 		this.taskFactory = taskFactory;
 		stopDuration = drtCfg.stopDuration;
@@ -36,6 +38,9 @@ public class VehicleAssignmentTools {
 				travelTime);
 	}
 
+	/**
+	 * Assigns a drt request to an drt vehicle at a certain time of the day.
+	 * */
 	public void assignIdlingVehicleToRequest(DvrpVehicle vehicle, DrtRequest request, double timeOfTheDay) {
 		// Adding new request to the end of the current schedule
 		// Step 1. Set end time to the final stay task to timeOfTheDay
@@ -90,6 +95,9 @@ public class VehicleAssignmentTools {
 		schedule.addTask(newFinalStayTask);
 	}
 
+	/**
+	 * Calculates travel time from a busy drt vehicle to a given link.
+	 * */
 	public double calculateTimeDistanceForBusyVehicle(DvrpVehicle vehicle, Link requestLink, double timeOfTheDay) {
 		int finalTaskIndex = vehicle.getSchedule().getTaskCount() - 1;
 		DrtStayTask finalStayTask = (DrtStayTask) vehicle.getSchedule().getTasks().get(finalTaskIndex);
@@ -98,7 +106,7 @@ public class VehicleAssignmentTools {
 		return calculateTravelTime(vehicleLink, requestLink, finalStayTask.getBeginTime()) + additionalTIme;
 	}
 
-	public double calculateTravelTime(Link fromLink, Link toLink, double timeOfTheDay) {
+	private double calculateTravelTime(Link fromLink, Link toLink, double timeOfTheDay) {
 		VrpPathWithTravelData path = VrpPaths.calcAndCreatePath(fromLink, toLink, timeOfTheDay, leastCostPathCalculator,
 				travelTime);
 		return path.getTravelTime();

@@ -128,16 +128,6 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
     	--landuse input/landuse/landuse.shp\
     	--output $@\
 
-#add short trips to population
-	java -jar $(JAR) prepare generate-short-distance-trips\
-		--population $@\
-		--input-crs $(CRS)\
-		--shp $(DILUTION_AREA)\
-		--shp-crs $(CRS)\
-		--num-trips 7500\
-		--range 5000\
-		--output $@\
-
 	java -jar $(JAR) prepare generate-short-distance-trips\
 		--population $@\
 		--input-crs $(CRS)\
@@ -162,14 +152,6 @@ input/$(S)-$(V)-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/populat
 
 	java -jar $(JAR) prepare population\
 		$@\
-		--output $@\
-
-	java -jar $(JAR) prepare clean-population	\
-		--plans $@\
-		--remove-routes\
-		--remove-unselected-plans\
-		--remove-activity-location\
-		--trips-to-legs\
 		--output $@\
 
 	java -jar $(JAR) prepare extract-home-coordinates $@\

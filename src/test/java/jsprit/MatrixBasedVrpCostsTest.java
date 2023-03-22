@@ -21,7 +21,7 @@
 package jsprit;
 
 import com.graphhopper.jsprit.core.problem.Location;
-import drtSchoolTransportStudy.jsprit.MatrixBasedVrpCosts;
+import drtschooltransportstudy.jsprit.MatrixBasedVrpCosts;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Test;
 import org.matsim.api.core.v01.Identifiable;
