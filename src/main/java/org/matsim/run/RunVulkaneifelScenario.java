@@ -12,7 +12,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.prepare.*;
 import picocli.CommandLine;
-import prepare.*;
 
 @CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version = RunVulkaneifelScenario.VERSION)
 @MATSimApplication.Prepare({
