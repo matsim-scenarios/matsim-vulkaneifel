@@ -20,7 +20,7 @@
 	<description>A transport model of the district of Vulkaneifel and its surroundings</description>
 
 	<properties>
-		<main.class>run.VulkaneifelApplication</main.class>
+		<main.class>org.matsim.run.RunVulkaneifelScenario</main.class>
 
 		<!-- Don't modify, will use the same version as parent -->
 		<matsim.version>${project.parent.version}</matsim.version>
