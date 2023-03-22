@@ -57,15 +57,15 @@
 	</module>
 
 	<module name="qsim">
-		<param name="endTime" value="36:00:00"/>
 		<param name="flowCapacityFactor" value="0.25"/>
 		<param name="storageCapacityFactor" value="0.25"/>
 		<param name="mainMode" value="car,freight"/>
 		<param name="numberOfThreads" value="16"/>
 		<param name="startTime" value="00:00:00"/>
+		<param name="endTime" value="36:00:00"/>
 		<param name="stuckTime" value="30.0"/>
 		<param name="trafficDynamics" value="kinematicWaves"/>
-		<param name="linkDynamics" value="PassingQ"/>
+		<param name="linkDynamics" value="FIFO"/>
 		<param name="useLanes" value="false"/>
 
 		<param name="vehiclesSource" value="modeVehicleTypesFromVehiclesData"/>
@@ -92,7 +92,7 @@
 		<parameterset type="strategysettings">
 			<param name="strategyName" value="TimeAllocationMutator"/>
 			<param name="subpopulation" value="person"/>
-			<param name="weight" value="0.025"/>
+			<param name="weight" value="0.1"/>
 		</parameterset>
 
 		<parameterset type="strategysettings">
