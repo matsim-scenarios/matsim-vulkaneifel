@@ -7,6 +7,9 @@ import org.matsim.contrib.drt.optimizer.rebalancing.targetcalculator.Rebalancing
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.dvrp.run.AbstractDvrpModeQSimModule;
 
+/**
+ * Module for the specific rural rebalancing.
+ */
 public class RuralScenarioRebalancingTCModule extends AbstractDvrpModeQSimModule {
 	private final DrtConfigGroup drtCfg;
 	private final double lookAheadTime;

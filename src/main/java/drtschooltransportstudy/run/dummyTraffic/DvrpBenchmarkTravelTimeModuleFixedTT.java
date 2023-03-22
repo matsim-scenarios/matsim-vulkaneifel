@@ -7,6 +7,9 @@ import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.router.util.TravelTime;
 
+/**
+ * Module to install fixed travel time estimation.
+ */
 public final class DvrpBenchmarkTravelTimeModuleFixedTT extends AbstractModule {
 	private final double travelTimeOverEstimation;
 
@@ -14,6 +17,7 @@ public final class DvrpBenchmarkTravelTimeModuleFixedTT extends AbstractModule {
 		this.travelTimeOverEstimation = travelTimeOverEstimation;
 	}
 
+	@Override
 	public void install() {
 		addTravelTimeBinding(DvrpTravelTimeModule.DVRP_ESTIMATED).toInstance(
 				new QSimFreeSpeedTravelTimeFixed(getConfig().qsim().getTimeStepSize(), travelTimeOverEstimation));

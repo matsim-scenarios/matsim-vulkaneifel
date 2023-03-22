@@ -5,6 +5,9 @@ import org.matsim.contrib.drt.passenger.DrtRequest;
 import org.matsim.contrib.drt.schedule.DrtStopTask;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 
+/**
+ * Estimate fixed stop duration.
+ */
 public record LinearDrtStopDurationEstimator(double fixedStopDuration) implements IncrementalStopDurationEstimator {
 
 	@Override

@@ -64,6 +64,9 @@ public class SchoolTrafficRouteCreator implements DefaultMainLegRouter.RouteCrea
 	}
 
 
+	/**
+	 * Specific trip creator for the scenario.
+	 */
 	public static class SchoolTripsDrtRouteCreatorProvider extends ModalProviders.AbstractProvider<DvrpMode, SchoolTrafficRouteCreator> {
 		private final LeastCostPathCalculatorFactory leastCostPathCalculatorFactory;
 

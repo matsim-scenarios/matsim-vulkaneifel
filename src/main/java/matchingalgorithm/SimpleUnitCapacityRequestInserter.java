@@ -23,6 +23,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * TODO: Write Description.
+ * @author Chengqi Lu
+ */
 public class SimpleUnitCapacityRequestInserter implements UnplannedRequestInserter {
 	private static final Logger log = LogManager.getLogger(SimpleUnitCapacityRequestInserter.class);
 

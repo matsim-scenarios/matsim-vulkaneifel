@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.ToDoubleFunction;
 
+/**
+ * Rebalancing target calculator for rural scenario.
+ */
 public class RuralScenarioRebalancingTargetCalculator implements RebalancingTargetCalculator {
 	private final ZonalDemandEstimator demandEstimator;
 	private final double demandEstimationPeriod;

@@ -7,6 +7,9 @@ import org.matsim.contrib.drt.analysis.zonal.DrtZoneTargetLinkSelector;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.dvrp.run.AbstractDvrpModeModule;
 
+/**
+ * Install module to use predetermined links.
+ */
 public class PredeterminedLinkSelectionModule extends AbstractDvrpModeModule {
 	private static final Logger log = LogManager.getLogger(PredeterminedLinkSelectionModule.class);
 	private final String pathToPredeterminedPoints = "C:\\Users\\cluac\\MATSimScenarios\\Vulkaneifel\\ZonalSystem\\RequestClusterTargetPoints.shp";

@@ -18,6 +18,9 @@ import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import utils.VehicleAssignmentTools;
 
+/**
+ * Module to install {@link SimpleUnitCapacityRequestInserter}.
+ */
 public class SimpleUnitCapacityRequestInserterModule extends AbstractDvrpModeQSimModule {
 
 	private final DrtConfigGroup drtCfg;

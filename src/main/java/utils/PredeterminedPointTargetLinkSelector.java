@@ -19,6 +19,9 @@ import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * Selector for predetermined points.
+ */
 public class PredeterminedPointTargetLinkSelector implements DrtZoneTargetLinkSelector {
 	private static final Logger log = LogManager.getLogger(PredeterminedPointTargetLinkSelector.class);
 	private final Map<DrtZone, Link> targetLinks = new HashMap<>();
