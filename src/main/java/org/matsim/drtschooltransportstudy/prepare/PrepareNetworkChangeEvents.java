@@ -43,8 +43,8 @@ public class PrepareNetworkChangeEvents implements MATSimAppCommand {
 			linkOriginalFreeSpeedMap.put(link.getId(), link.getFreespeed());
 		}
 
-		double startTime = 6 * 3600;
-		double endTime = 8 * 3600;
+		double startTime = 6 * 3600.;
+		double endTime = 8 * 3600.;
 
 		for (double time = startTime; time < endTime; time += interval) {
 			for (Link link : network.getLinks().values()) {

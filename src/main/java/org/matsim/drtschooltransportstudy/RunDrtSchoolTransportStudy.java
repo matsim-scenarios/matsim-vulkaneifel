@@ -52,17 +52,15 @@ public final class RunDrtSchoolTransportStudy {
 			args = new String[]{"C:\\Users\\cluac\\MATSimScenarios\\Vulkaneifel\\config_for_rebalance_study.xml"};
 		}
 
-		for (int i = 0; i < REBLANCE_STRATEGIES.length; i++) {
-			for (int j = 0; j < FLEET_SIZES.length; j++) {
-				String rebalanceStrategy = REBLANCE_STRATEGIES[i];
-				String fleetSize = FLEET_SIZES[j];
+		for (String rebalancedStrategy : REBLANCE_STRATEGIES) {
+			for (String size : FLEET_SIZES) {
 
 				Config config = ConfigUtils.loadConfig(args[0], new MultiModeDrtConfigGroup(), new DvrpConfigGroup());
-				config.controler().setOutputDirectory(OUTPUT_DIRECTORY_HEADING + rebalanceStrategy + "-" + fleetSize);
+				config.controler().setOutputDirectory(OUTPUT_DIRECTORY_HEADING + rebalancedStrategy + "-" + size);
 
 				for (DrtConfigGroup drtConfigGroup : MultiModeDrtConfigGroup.get(config).getModalElements()) {
 					// Set Fleet size (i.e. set vehicles file)
-					drtConfigGroup.vehiclesFile = VEHICLE_FILE_HEADING + fleetSize + VEHICLE_FILE_ENDING;
+					drtConfigGroup.vehiclesFile = VEHICLE_FILE_HEADING + size + VEHICLE_FILE_ENDING;
 
 					RebalancingParams rebalancingParams = drtConfigGroup.getRebalancingParams()
 							.orElse(new RebalancingParams());
@@ -71,7 +69,7 @@ public final class RunDrtSchoolTransportStudy {
 					rebalancingParams.maxTimeBeforeIdle = 120;
 
 					// Set rebalancing Strategy
-					switch (rebalanceStrategy) {
+					switch (rebalancedStrategy) {
 						case "Feedforward":
 							log.info("Feedforward rebalancing strategy is used");
 							RebalanceStudyUtils.prepareFeedforwardStrategy(rebalancingParams);
@@ -115,7 +113,7 @@ public final class RunDrtSchoolTransportStudy {
 
 				for (DrtConfigGroup drtCfg : multiModeDrtConfig.getModalElements()) {
 					double maxEuclideanDistance = 3000;
-					if (rebalanceStrategy.equals("PlusOne")) {
+					if (rebalancedStrategy.equals("PlusOne")) {
 						maxEuclideanDistance = 100000;
 					}
 					controler.addOverridingQSimModule(

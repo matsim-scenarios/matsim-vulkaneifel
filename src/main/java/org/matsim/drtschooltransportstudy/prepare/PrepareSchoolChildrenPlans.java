@@ -53,10 +53,10 @@ public class PrepareSchoolChildrenPlans implements MATSimAppCommand {
 
 	private final Logger log = LogManager.getLogger(PrepareSchoolChildrenPlans.class);
 
-	private static final double ageLowerBound = 6;
-	private static final double ageUpperBound = 18;
-	private static final double schoolTripTimeWindowFrom = 5 * 3600;
-	private static final double schoolTripTimeWindowTo = 9 * 3600;
+	private static final double ageLowerBound = 6.;
+	private static final double ageUpperBound = 18.;
+	private static final double schoolTripTimeWindowFrom = 5 * 3600.;
+	private static final double schoolTripTimeWindowTo = 9 * 3600.;
 
 	static final String EDUC_PRIMARY = "educ_primary";
 	static final String EDUC_SECONDARY = "educ_secondary";
