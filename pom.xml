@@ -66,6 +66,13 @@
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
+			<artifactId>vsp</artifactId>
+			<version>${matsim.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.matsim.contrib</groupId>
 			<artifactId>drt</artifactId>
 			<version>${matsim.version}</version>
 			<scope>compile</scope>
@@ -99,6 +106,10 @@
 				<exclusion>
 					<groupId>org.matsim</groupId>
 					<artifactId>matsim</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.postgresql</groupId>
+					<artifactId>postgresql</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
