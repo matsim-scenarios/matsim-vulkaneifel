@@ -33,7 +33,7 @@ public class PrepareNetworkChangeEvents implements MATSimAppCommand {
 
 	@Override
 	public Integer call() throws Exception {
-		Random random = new Random(1234);
+		SplittableRandom random = new SplittableRandom(1234);
 		Map<Id<Link>, Double> linkOriginalFreeSpeedMap = new HashMap<>();
 		Network network = NetworkUtils.readNetwork(networkPath);
 

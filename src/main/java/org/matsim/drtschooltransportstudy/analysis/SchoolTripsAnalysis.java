@@ -54,7 +54,7 @@ public final class SchoolTripsAnalysis implements MATSimAppCommand {
 	@CommandLine.Option(names = "--departure-delay-analysis", description = "enable departure delay analysis", defaultValue = "false")
 	private boolean includeDepartureDelayAnalysis;
 
-	public static final List<String> TITLE_ROW_KPI = Arrays.asList(
+	public static final List<String> TITLE_ROW_KPI = List.of(
 			"fleet_size", "total_requests", "served_requests", "punctual_arrivals", "service_satisfaction_rate",
 					"actual_in_vehicle_time_mean", "estimated_direct_in_vehicle_time_mean", "onboard_delay_ratio_mean",
 					"actual_travel_distance_mean", "estimated_direct_network_distance_mean", "detour_distance_ratio_mean",

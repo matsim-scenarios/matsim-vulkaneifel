@@ -66,7 +66,7 @@ public class PrepareSchoolChildrenPlans implements MATSimAppCommand {
 	// The cell size for the SNZ data is 300 meters
 	private static final double CELL_SIZE = 300;
 
-	private final Random rnd = new Random(1234);
+	private final SplittableRandom rnd = new SplittableRandom(1234);
 
 	public static void main(String[] args) {
 		new PrepareSchoolChildrenPlans().execute(args);

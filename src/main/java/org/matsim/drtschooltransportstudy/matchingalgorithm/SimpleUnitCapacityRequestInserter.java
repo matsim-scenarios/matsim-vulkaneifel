@@ -38,7 +38,7 @@ public class SimpleUnitCapacityRequestInserter implements UnplannedRequestInsert
 	private final double patientienceTime;
 	private final DrtScheduleInquiry scheduleInquiry;
 	private final VehicleAssignmentTools vehicleAssignmentTools;
-	private final double largeNumber = 10000000;
+	private static final double LARGE_NUMBER = 10_000_000;
 
 	private static final String NO_SUITABLE_VEHICLE_FOUND_CAUSE = "no_suitable_vehicle_found";
 
@@ -54,7 +54,7 @@ public class SimpleUnitCapacityRequestInserter implements UnplannedRequestInsert
 //		this.zonalSystem = zonalSystem;
 
 		this.maxEuclideanDistance = maxEuclideanDistance;
-		patientienceTime = largeNumber;
+		patientienceTime = LARGE_NUMBER;
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class SimpleUnitCapacityRequestInserter implements UnplannedRequestInsert
 			}
 
 			// Find the closest vehicles from the feasible vehicle list
-			double shortestDistance = largeNumber;
+			double shortestDistance = LARGE_NUMBER;
 			DvrpVehicle selectedVehicle = null;
 			for (DvrpVehicle vehicle : idleVehicles) {
 				Link vehicleLink = ((DrtStayTask) vehicle.getSchedule().getCurrentTask()).getLink();

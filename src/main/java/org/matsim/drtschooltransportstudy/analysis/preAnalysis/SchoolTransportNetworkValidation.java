@@ -88,7 +88,7 @@ public class SchoolTransportNetworkValidation implements MATSimAppCommand {
 			validator = new HereMapsRouteValidator(outputPath, mode, apiKey, date.toString(), ct, false);
 
 		} else {
-			throw new RuntimeException("Wrong API used. Allowed values for --api are: GOOGLE_MAP, HERE. Do not use NETWORK_BASED validator in this analysis");
+			throw new IllegalArgumentException("Wrong API used. Allowed values for --api are: GOOGLE_MAP, HERE. Do not use NETWORK_BASED validator in this analysis");
 		}
 
 		Population population = PopulationUtils.readPopulation(plansPath);

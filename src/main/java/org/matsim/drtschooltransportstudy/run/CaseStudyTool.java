@@ -75,7 +75,7 @@ public final class CaseStudyTool {
 				// In the stop based adapted case, departure time is modified based on the DRT stops (most students will depart earlier)
 				break;
 			default:
-				throw new RuntimeException("Unknown service scheme setting");
+				throw new IllegalStateException("Unknown service scheme setting");
 		}
 
 		config.plans().setInputFile(inputPlansFile);
@@ -107,7 +107,7 @@ public final class CaseStudyTool {
 			case TWO_SCHOOL_STARTING_TIME:
 				return readSchoolStartingTimeFromActivity(schoolActivityType);
 			default:
-				throw new RuntimeException(Gbl.NOT_IMPLEMENTED);
+				throw new IllegalStateException(Gbl.NOT_IMPLEMENTED);
 		}
 	}
 
@@ -117,7 +117,7 @@ public final class CaseStudyTool {
 			int size = activityTypeStrings.length;
 			return Double.parseDouble(activityTypeStrings[size - 1]);
 		} else {
-			throw new RuntimeException("The activity type (name) of the school activity does not include starting time. " +
+			throw new IllegalStateException("The activity type (name) of the school activity does not include starting time. " +
 					"Please check the input plans or use UNIFORM or DEFAULT school starting scheme");
 		}
 	}
