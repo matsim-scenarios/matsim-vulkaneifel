@@ -27,9 +27,9 @@ input/temp/population.xml.gz:
 	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/personAttributes.xml.gz -o input/temp/personAttributes.xml.gz\
 
 input/temp/german_freight.25pct.plans.xml.gz:
-	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v1/german-wide-freight-25pct.xml.gz -o input/temp/german_freight.25pct.plans.xml.gz\
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v2/german_freight.25pct.plans.xml.gz -o input/temp/german_freight.25pct.plans.xml.gz\
 
-	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v1/german-primary-road.network.xml.gz -o input/temp/germany-europe-network.xml.gz\
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v2/germany-europe-network.xml.gz -o input/temp/germany-europe-network.xml.gz\
 
 ${SHP_FILES} :
 	curl https://download.geofabrik.de/europe/germany/$(@:input/shp/%=%) -o $@\
@@ -109,7 +109,7 @@ input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz
 input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz input/dilutionArea.shp
 	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
 		 --network input/temp/germany-europe-network.xml.gz\
-		 --input-crs EPSG:5677\
+		 --input-crs $(CRS)\
 		 --target-crs $(CRS)\
 		 --shp $(DILUTION_AREA)\
 		 --output $@
@@ -117,6 +117,7 @@ input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight
 input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz  input/$N-$V-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
     	--name $N-$V	--sample-size 0.25\
+		--max-typical-duration 0\
     	--attributes input/temp/personAttributes.xml.gz\
     	--population input/temp/population.xml.gz\
     	--output input/\
@@ -137,6 +138,9 @@ input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.
 		--num-trips 6000\
 		--range 1000\
 		--output $@\
+
+	java -jar $(JAR) prepare split-activity-types-duration\
+		--input $@ --output $@
 
 	java -jar $(JAR) prepare adjust-activity-to-link-distances\
 		$@\
