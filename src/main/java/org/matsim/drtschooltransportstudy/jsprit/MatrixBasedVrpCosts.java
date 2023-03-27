@@ -42,6 +42,7 @@ import static org.matsim.contrib.dvrp.path.VrpPaths.FIRST_LINK_TT;
 
 /**
  * Calculate vehicle routing costs based on a tt-matrix.
+ *
  * @author Michal Maciejewski (michalm)
  */
 public final class MatrixBasedVrpCosts implements VehicleRoutingTransportCosts {
@@ -50,7 +51,7 @@ public final class MatrixBasedVrpCosts implements VehicleRoutingTransportCosts {
 
 	/**
 	 * Calculates a vrp costs matrix for a network.
-	 * */
+	 */
 	public static MatrixBasedVrpCosts calculateVrpCosts(Network network, Map<Id<Link>, Location> locationByLinkId) {
 		var linkByLocationIndex = EntryStream.of(locationByLinkId)
 				.invert()
@@ -91,7 +92,7 @@ public final class MatrixBasedVrpCosts implements VehicleRoutingTransportCosts {
 				if (fromLink != toLink) {
 					double duration = FIRST_LINK_TT + nodeToNodeMatrix.get(fromZone, toZone) + VrpPaths.getLastLinkTT(
 							travelTime, toLink, 0);
-					travelTimes[fromLocationIdx][toLocationIdx] = (int)duration;
+					travelTimes[fromLocationIdx][toLocationIdx] = (int) duration;
 				}
 			}
 		}
