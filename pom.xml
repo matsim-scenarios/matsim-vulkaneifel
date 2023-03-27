@@ -7,7 +7,7 @@
 		<!-- Define MATSim version here -->
 
 		<!-- snapshot == not recommended: rather use PR-labelled release!-->
-		<version>15.0-PR2467</version>
+		<version>15.0-PR2471</version>
 <!--		<version>15.0-SNAPSHOT</version>-->
 	</parent>
 

@@ -28,6 +28,7 @@ import one.util.streamex.EntryStream;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.dvrp.path.VrpPaths;
 import org.matsim.contrib.dvrp.router.TimeAsTravelDisutility;
 import org.matsim.contrib.dvrp.trafficmonitoring.QSimFreeSpeedTravelTime;
 import org.matsim.contrib.zone.Zone;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
+import static org.matsim.contrib.dvrp.path.VrpPaths.FIRST_LINK_TT;
 
 /**
  * Calculate vehicle routing costs based on a tt-matrix.
@@ -87,12 +89,9 @@ public final class MatrixBasedVrpCosts implements VehicleRoutingTransportCosts {
 
 				// otherwise, the matrix cell remains set to 0
 				if (fromLink != toLink) {
-					/*double duration = FIRST_LINK_TT + nodeToNodeMatrix.get(fromZone, toZone) + VrpPaths.getLastLinkTT(
+					double duration = FIRST_LINK_TT + nodeToNodeMatrix.get(fromZone, toZone) + VrpPaths.getLastLinkTT(
 							travelTime, toLink, 0);
 					travelTimes[fromLocationIdx][toLocationIdx] = (int)duration;
-					TODO:
-					 */
-					throw new IllegalStateException("Class Matrix.java is no longer public!");
 				}
 			}
 		}
