@@ -3,7 +3,7 @@ N := vulkaneifel
 V := v1.1
 CRS := EPSG:25832
 DILUTION_AREA := input/dilutionArea/dilutionArea.shp
-JAR := matsim-vulkaneifel-1.1-SNAPSHOT.jar
+JAR := matsim-vulkaneifel-1.1-SNAPSHOT-046ee05-dirty.jar
 
 REGIONS := baden-wuerttemberg bayern brandenburg bremen hamburg hessen mecklenburg-vorpommern niedersachsen nordrhein-westfalen\
 	rheinland-pfalz saarland sachsen sachsen-anhalt schleswig-holstein thueringen
