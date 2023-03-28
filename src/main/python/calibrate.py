@@ -61,10 +61,7 @@ def filter_persons(persons):
     return df
 
 def filter_modes(df):
-    df = df[df.main_mode != "freight"]
-    df.loc[df.main_mode.str.startswith("pt_"), "main_mode"] = "pt"
-
-    return df
+    return df[df.main_mode.isin(modes)]
 
 
 # FIXME: Adjust paths and config
@@ -73,10 +70,10 @@ study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel
                                         "../input/vulkaneifel-v1.1-25pct.config.xml",
                                         modes, target, 
                                         initial_asc=initial,
-                                        args="--25pct",
+                                        args="--25pct --config:TimeAllocationMutator.mutationRange=900",
                                         jvm_args="-Xmx48G -Xmx48G -XX:+AlwaysPreTouch",
                                         lr=calibration.linear_lr_scheduler(start=0.5),
-                                        person_filter=filter_persons, map_trips=filter_modes, chain_runs=True)
+                                        person_filter=filter_persons, map_trips=filter_modes, chain_runs=calibration.default_chain_scheduler)
 
 
 #%%
