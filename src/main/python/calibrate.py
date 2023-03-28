@@ -71,7 +71,7 @@ study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel
                                         modes, target, 
                                         initial_asc=initial,
                                         args="--25pct --config:TimeAllocationMutator.mutationRange=900",
-                                        jvm_args="-Xmx48G -Xmx48G -XX:+AlwaysPreTouch",
+                                        jvm_args="-Xmx60G -Xmx60G -XX:+AlwaysPreTouch",
                                         lr=calibration.linear_lr_scheduler(start=0.5),
                                         person_filter=filter_persons, map_trips=filter_modes, chain_runs=calibration.default_chain_scheduler)
 

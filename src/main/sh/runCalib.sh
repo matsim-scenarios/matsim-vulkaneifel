@@ -3,8 +3,8 @@
 #$ -j y
 #$ -m a
 #$ -cwd
-#$ -pe mp 8
-#$ -l mem_free=6G
+#$ -pe mp 12
+#$ -l mem_free=5G
 #$ -l ../logfile/logfile_calib.log
 #$ -N calib-scenario
 
