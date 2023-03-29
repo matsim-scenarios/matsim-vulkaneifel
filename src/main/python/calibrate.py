@@ -31,10 +31,10 @@ if os.path.exists("mid.csv"):
 modes = ["walk", "car", "ride", "pt", "bike"]
 fixed_mode = "walk"
 initial = {
-    "bike": 0.0,
-    "pt": 0.0,
-    "car": 0.0,
-    "ride": 0.0
+    "bike": -3.0,
+    "pt": -3.0,
+    "car": -1.0,
+    "ride": -4.0
 }
 
 # FIXME: Adjust
@@ -66,7 +66,7 @@ def filter_modes(df):
 
 # FIXME: Adjust paths and config
 
-study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.1-SNAPSHOT.jar",
+study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.1-SNAPSHOT-6821632-dirty.jar",
                                         "../input/vulkaneifel-v1.1-25pct.config.xml",
                                         modes, target, 
                                         initial_asc=initial,
