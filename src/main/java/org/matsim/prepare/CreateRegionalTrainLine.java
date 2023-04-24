@@ -47,6 +47,9 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 	@CommandLine.Option(names = "--name", description = "name of the scenario", required = true)
 	private String name;
 
+	@CommandLine.Option(names = "--sev-id", description = "id of SEV bus line", required = true)
+	private String sevID;
+
 	@CommandLine.Option(names = "--output", description = "output file path")
 	private String output;
 
@@ -68,8 +71,6 @@ public class CreateRegionalTrainLine implements MATSimAppCommand {
 		which contains only the regional train
 		still two stops in the train schedule which do NOT belong in there...
 		*/
-
-		String sevID = "SEV---1747";
 
 		Id<TransitLine> id = Id.create(sevID, TransitLine.class);
 
