@@ -64,7 +64,7 @@ public class SchoolTransportNetworkValidation implements MATSimAppCommand {
 	}
 	//TODO make the enum in TravelTimeAnalysis class public
 
-	private static final String mode = TransportMode.car;
+	private static final String MODE = TransportMode.car;
 
 	public static void main(String[] args) {
 		new SchoolTransportNetworkValidation().execute(args);
@@ -79,13 +79,13 @@ public class SchoolTransportNetworkValidation implements MATSimAppCommand {
 			if (date == null) {
 				date = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY));
 			}
-			validator = new GoogleMapRouteValidator(outputPath, mode, apiKey, date.toString(), ct);
+			validator = new GoogleMapRouteValidator(outputPath, MODE, apiKey, date.toString(), ct);
 
 		} else if (api == API.HERE) {
 			if (date == null) {
 				date = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.WEDNESDAY));
 			}
-			validator = new HereMapsRouteValidator(outputPath, mode, apiKey, date.toString(), ct, false);
+			validator = new HereMapsRouteValidator(outputPath, MODE, apiKey, date.toString(), ct, false);
 
 		} else {
 			throw new IllegalArgumentException("Wrong API used. Allowed values for --api are: GOOGLE_MAP, HERE. Do not use NETWORK_BASED validator in this analysis");

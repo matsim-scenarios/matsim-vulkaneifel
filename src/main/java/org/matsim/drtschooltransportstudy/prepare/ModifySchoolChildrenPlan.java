@@ -191,20 +191,20 @@ public class ModifySchoolChildrenPlan implements MATSimAppCommand {
 
 	// Initial implementation: Uniform school starting time at 8:00.
 	static class UniformSchoolStartingTimeIdentification implements SchoolStartingTimeIdentifier {
-		private static final double schoolStartingTime = 28800;
+		private static final double SCHOOL_STARTING_TIME = 28800;
 
 		@Override
 		public double getSchoolStartingTime(Activity schoolActivity) {
-			return schoolStartingTime;
+			return SCHOOL_STARTING_TIME;
 		}
 	}
 
 	static class TwoSchoolStartingTimeIdentification implements SchoolStartingTimeIdentifier {
 		private final Geometry earlyStartArea;
 		// set starting time to 07:30
-		private static final int schoolStartingTime1 = 27000;
+		private static final int SCHOOL_STARTING_TIME_1 = 27000;
 		// set starting time 2 to 08:00
-		private static final int schoolStartingTime2 = 28800;
+		private static final int SCHOOL_STARTING_TIME_2 = 28800;
 
 		TwoSchoolStartingTimeIdentification(Geometry earlyStartArea) {
 			this.earlyStartArea = earlyStartArea;
@@ -213,13 +213,13 @@ public class ModifySchoolChildrenPlan implements MATSimAppCommand {
 		@Override
 		public double getSchoolStartingTime(Activity schoolActivity) {
 			if (MGC.coord2Point(schoolActivity.getCoord()).within(earlyStartArea)) {
-				String activityTypeWithStartingTime = schoolActivity.getType() + "_starting_at_" + schoolStartingTime1;
+				String activityTypeWithStartingTime = schoolActivity.getType() + "_starting_at_" + SCHOOL_STARTING_TIME_1;
 				schoolActivity.setType(activityTypeWithStartingTime);
-				return schoolStartingTime1;
+				return SCHOOL_STARTING_TIME_1;
 			}
-			String activityTypeWithStartingTime = schoolActivity.getType() + "_starting_at_" + schoolStartingTime2;
+			String activityTypeWithStartingTime = schoolActivity.getType() + "_starting_at_" + SCHOOL_STARTING_TIME_2;
 			schoolActivity.setType(activityTypeWithStartingTime);
-			return schoolStartingTime2;
+			return SCHOOL_STARTING_TIME_2;
 		}
 	}
 
