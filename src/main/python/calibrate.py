@@ -66,13 +66,13 @@ def filter_modes(df):
 
 # FIXME: Adjust paths and config
 
-study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.1-SNAPSHOT-6821632-dirty.jar",
+study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.1-SNAPSHOT.jar",
                                         "../input/vulkaneifel-v1.1-25pct.config.xml",
                                         modes, target, 
                                         initial_asc=initial,
                                         args="--25pct --config:TimeAllocationMutator.mutationRange=900",
                                         jvm_args="-Xmx60G -Xmx60G -XX:+AlwaysPreTouch",
-                                        lr=calibration.linear_lr_scheduler(start=0.5),
+                                        lr=calibration.linear_lr_scheduler(start=0.5, interval=6),
                                         person_filter=filter_persons, map_trips=filter_modes, chain_runs=calibration.default_chain_scheduler)
 
 

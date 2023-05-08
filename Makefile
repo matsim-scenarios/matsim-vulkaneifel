@@ -1,9 +1,8 @@
-
 N := vulkaneifel
 V := v1.1
 CRS := EPSG:25832
 DILUTION_AREA := input/dilutionArea/dilutionArea.shp
-JAR := matsim-vulkaneifel-1.1-SNAPSHOT-046ee05-dirty.jar
+JAR := matsim-vulkaneifel-1.1-SNAPSHOT.jar
 
 REGIONS := baden-wuerttemberg bayern brandenburg bremen hamburg hessen mecklenburg-vorpommern niedersachsen nordrhein-westfalen\
 	rheinland-pfalz saarland sachsen sachsen-anhalt schleswig-holstein thueringen
@@ -13,6 +12,17 @@ SHP_FILES := $(patsubst %, input/shp/%-210101-free.shp.zip, $(REGIONS))
 # Required files
 input/network.osm.pbf:
 	curl https://download.geofabrik.de/europe/germany-230101.osm.pbf -o $@\
+
+input/shp/VG5000_GEM.shp.zip:
+	curl https://daten.gdz.bkg.bund.de/produkte/vg/vg5000_0101/aktuell/vg5000_01-01.utm32s.shape.ebenen.zip -o input/shp/VG5000_GEM.shp.zip\
+
+	unzip input/shp/VG5000_GEM.shp.zip -d input/shp/
+
+input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip:
+	curl https://svn.vsp.tu-berlin.de/repos/shared-svn/projects/matsim-germany/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip -o $@
+
+input/gtfs/regio-s-train-gtfs-2021-11-14.zip:
+	curl https://svn.vsp.tu-berlin.de/repos/shared-svn/projects/matsim-germany/gtfs/regio-s-train-gtfs-2021-11-14.zip -o $@
 
 input/dilutionArea/dilutionArea.shp:
 	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shp -o $@\
@@ -48,12 +58,15 @@ input/$N-$V-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutionAre
 		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
 		
 #create transit schedule
-input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz
- #create big bus schedule as template for regional train
+input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz input/shp/VG5000_GEM.shp.zip input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip input/gtfs/regio-s-train-gtfs-2021-11-14.zip
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
-			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
+			input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
+			input/gtfs/regio-s-train-gtfs-2021-11-14.zip\
+			--prefix bus_,short_\
+			--shp input/bus-area/bus-area.shp \
+			--shp input/shp/vg5000_01-01.utm32s.shape.ebenen/vg5000_ebenen_0101/VG5000_GEM.shp \
 			--network input/$N-$V-network.xml.gz\
-			--name $N-$V-template\
+			--name $N-$V\
 			--date "2021-11-24"\
 			--target-crs EPSG:25832\
 			--output input/temp\
@@ -61,46 +74,27 @@ input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz
 #create train line
 	java -jar $(JAR) prepare create-train-line	\
 		--network input/temp/$N-$V-network-with-pt.xml.gz	\
-		--schedule input/temp/$N-$V-template-transitSchedule.xml.gz	\
-		--vehicles input/temp/$N-$V-template-transitVehicles.xml.gz	\
+		--schedule input/temp/$N-$V-transitSchedule.xml.gz	\
+		--vehicles input/temp/$N-$V-transitVehicles.xml.gz	\
 		--shp $(DILUTION_AREA)\
 		--shp-crs EPSG:25832\
 		--target-crs EPSG:25832\
+		--sev-id bus_SEV---1747\
 		--name $N-$V\
 		--output input/temp\
 
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
-    		../gtfs/regio-s-train-gtfs-2021-11-14.zip\
-    		--network input/$N-$V-network.xml.gz\
-    		--name $N-$V-train\
-    		--date "2021-11-24"\
-    		--target-crs EPSG:25832\
-    		--output input/temp\
-
-#create bus schedule for Rheinland-Pfalz only
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
-			../gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-			--network input/$N-$V-network.xml.gz\
-			--name $N-$V-bus\
-			--date "2021-11-24"\
-			--target-crs EPSG:25832\
-			--shp input/shp/rheinland-pfalz-210101-free.shp.zip\
-			--output input/temp\
-
 #remove sev line from small schedule
 	java -jar $(JAR) prepare remove-bus-line\
-		--schedule input/temp/$N-$V-bus-transitSchedule.xml.gz\
-		--name $N-$V-bus\
+		--schedule input/temp/$N-$V-transitSchedule.xml.gz\
+		--name $N-$V\
 		--output input/temp\
-		--lineId SEV---1747\
+		--lineId bus_SEV---1747\
 
 #merge regional train line into complete schedule
 	java -jar $(JAR) prepare merge-transit-schedules\
-		input/temp/$N-$V-train-transitSchedule.xml.gz\
-		input/temp/$N-$V-bus-without-SEV-transitSchedule.xml.gz\
+		input/temp/$N-$V-without-SEV-transitSchedule.xml.gz\
 		input/temp/$N-$V-transitSchedule-only-regional-train.xml.gz\
-		--vehicles input/temp/$N-$V-train-transitVehicles.xml.gz\
-		--vehicles input/temp/$N-$V-bus-transitVehicles.xml.gz\
+		--vehicles input/temp/$N-$V-transitVehicles.xml.gz\
 		--vehicles input/temp/$N-$V-transitVehicles-only-regional-train.xml.gz\
 		--network input/$N-$V-network.xml.gz\
 		--name $N-$V\
@@ -172,3 +166,5 @@ input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.
         --samples 0.01\
 
 prepare: input/$N-$V-25pct.plans.xml.gz
+
+pt: input/$N-$V-transitSchedule.xml.gz
