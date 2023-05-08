@@ -14,7 +14,7 @@ The main changes are:
 * The transit schedule contains now a larger network of regional bus lines.
 * Freight agents and short trips were added to the population.
 
-<a rel="TU Berlin" href="https://www.vsp.tu-berlin.de"><img src="https://svn.vsp.tu-berlin.de/repos/public-svn/ueber_uns/logo/vsp-logo-2022-transparent-vehicles.svg"/></a>
+<a rel="TU Berlin" href="https://www.vsp.tu-berlin.de"><img src="https://svn.vsp.tu-berlin.de/repos/public-svn/ueber_uns/logo/TU_BERLIN_Logo_Lang_RGB_SR_rot.svg" width="25%"/></a>
 
 This scenario contains a 25pct sample of the Vulkaneifel and its surrounding area; road capacities are accordingly reduced. 
 
