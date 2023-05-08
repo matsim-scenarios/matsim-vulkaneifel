@@ -8,7 +8,7 @@ import geopandas as gpd
 
 try:
     from matsim import calibration
-except:
+except ImportError:
     import calibration
 
 #%%
