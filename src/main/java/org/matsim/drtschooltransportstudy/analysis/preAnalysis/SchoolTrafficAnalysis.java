@@ -36,7 +36,7 @@ public class SchoolTrafficAnalysis implements MATSimAppCommand {
 	private String outputPath;
 
 	// set to 08:00
-	private static final double schoolStartingTime = 28800;
+	private static final double SCHOOL_STARTING_TIME = 28800;
 
 	public static void main(String[] args) {
 		new SchoolTrafficAnalysis().execute(args);
@@ -67,7 +67,7 @@ public class SchoolTrafficAnalysis implements MATSimAppCommand {
 				Link toLink = NetworkUtils.getNearestLink(network, trip.getDestinationActivity().getCoord());
 				double estimatedDirectTravelTime = VrpPaths.calcAndCreatePath(fromLink, toLink, plannedDepartureTime, router, travelTime).getTravelTime();
 				double estimatedEarliestArrivalTime = plannedDepartureTime + estimatedDirectTravelTime;
-				double travelTimeAllowance = schoolStartingTime - plannedDepartureTime;
+				double travelTimeAllowance = SCHOOL_STARTING_TIME - plannedDepartureTime;
 				tsvWriter.printRecord(person.getId().toString() + "_" + tripCounter,
 						plannedDepartureTime, plannedArrivalTime, plannedTravelTime,
 						estimatedDirectTravelTime, estimatedEarliestArrivalTime,

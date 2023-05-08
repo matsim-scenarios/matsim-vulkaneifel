@@ -53,10 +53,10 @@ public class PrepareSchoolChildrenPlans implements MATSimAppCommand {
 
 	private final Logger log = LogManager.getLogger(PrepareSchoolChildrenPlans.class);
 
-	private static final double ageLowerBound = 6.;
-	private static final double ageUpperBound = 18.;
-	private static final double schoolTripTimeWindowFrom = 5 * 3600.;
-	private static final double schoolTripTimeWindowTo = 9 * 3600.;
+	private static final double AGE_LOWER_BOUND = 6.;
+	private static final double AGE_UPPER_BOUND = 18.;
+	private static final double SCHOOL_TRIP_TIME_WINDOW_FROM = 5 * 3600.;
+	private static final double SCHOOL_TRIP_TIME_WINDOW_TO = 9 * 3600.;
 
 	static final String EDUC_PRIMARY = "educ_primary";
 	static final String EDUC_SECONDARY = "educ_secondary";
@@ -111,7 +111,7 @@ public class PrepareSchoolChildrenPlans implements MATSimAppCommand {
 			Object ageValue = person.getAttributes().getAttribute("microm:modeled:age");
 			if (ageValue != null) {
 				int age = (int) ageValue;
-				if (age <= ageUpperBound && age >= ageLowerBound) {
+				if (age <= AGE_UPPER_BOUND && age >= AGE_LOWER_BOUND) {
 					Activity homeActivity = (Activity) person.getSelectedPlan().getPlanElements().get(0);
 					if (!homeActivity.getType().equals("home")) {
 						log.warn("Person {} does not start with home activity! Manual check is required", person.getId().toString());
@@ -127,8 +127,8 @@ public class PrepareSchoolChildrenPlans implements MATSimAppCommand {
 							// According to manual check, those are all feasible activities for education
 							if (((Activity) pE).getType().startsWith("educ_") || ((Activity) pE).getType().equals("errands") || ((Activity) pE).getType().equals("visit")) {
 //                            if (((Activity) pE).getType().startsWith("educ_")) {
-								if (((Activity) pE).getStartTime().orElse(86400) <= schoolTripTimeWindowTo &&
-										((Activity) pE).getStartTime().orElse(0) >= schoolTripTimeWindowFrom)
+								if (((Activity) pE).getStartTime().orElse(86400) <= SCHOOL_TRIP_TIME_WINDOW_TO &&
+										((Activity) pE).getStartTime().orElse(0) >= SCHOOL_TRIP_TIME_WINDOW_FROM)
 									identifiedEducationActivity = (Activity) pE;
 								// Some person has more than 1 "education" activity. The later one (within the school time window) is usually the correct one
 							}
