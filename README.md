@@ -4,15 +4,17 @@
 ![license](https://img.shields.io/github/license/matsim-scenarios/matsim-leipzig.svg)
 ![JDK](https://img.shields.io/badge/JDK-11+-green.svg)
 
+![Vulkaneifel MATSim network and agents)](visualization-vulkaneifel.png "Vulkaneifel MATSim network and agents")
+
 This is the MATSim model for the area of Vulkaneifel.
 
-The version 1.1 will be released soon.
+This repository contains the version 1.1 of the Open Vulkaneifel scenario.
 The main changes are:
 
 * The transit schedule contains now a larger network of regional bus lines.
 * Freight agents and short trips were added to the population.
 
-<a rel="TU Berlin" href="https://www.vsp.tu-berlin.de"><img src="https://svn.vsp.tu-berlin.de/repos/public-svn/ueber_uns/logo/TUB_Logo.png" width="15%" height="15%"/></a>
+<a rel="TU Berlin" href="https://www.vsp.tu-berlin.de"><img src="https://svn.vsp.tu-berlin.de/repos/public-svn/ueber_uns/logo/vsp-logo-2022-transparent-vehicles-600dpi.png" width="15%" height="15%"/></a>
 
 This scenario contains a 25pct sample of the Vulkaneifel and its surrounding area; road capacities are accordingly reduced. 
 
