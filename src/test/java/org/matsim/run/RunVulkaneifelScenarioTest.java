@@ -20,7 +20,9 @@ public class RunVulkaneifelScenarioTest {
 				"--1pct",
 				"--config=input/vulkaneifel-v1.1-25pct.config.xml",
 				"--config:controler.lastIteration=1",
-				"--config:controler.outputDirectory=" + utils.getOutputDirectory()
+				"--config:controler.outputDirectory=" + utils.getOutputDirectory(),
+				"--config:global.numberOfThreads=2",
+				"--config:qsim.numberOfThreads=2"
 		};
 
 		MATSimApplication.run(RunVulkaneifelScenario.class, args);
