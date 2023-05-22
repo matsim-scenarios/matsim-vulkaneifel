@@ -17,8 +17,8 @@ public class RunVulkaneifelScenarioTest {
 
 		String[] args = {
 				"run",
-				"--1pct",
 				"--config=input/vulkaneifel-v1.1-25pct.config.xml",
+				"--config:plans.inputPlansFile=https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.1/input/vulkaneifel-v1.1-0.1pct.plans.xml.gz",
 				"--config:controler.lastIteration=1",
 				"--config:controler.outputDirectory=" + utils.getOutputDirectory(),
 				"--config:global.numberOfThreads=2",

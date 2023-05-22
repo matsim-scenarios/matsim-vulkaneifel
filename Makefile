@@ -164,6 +164,7 @@ input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.
 	java -jar $(JAR) prepare downsample-population $@\
 	 	--sample-size 0.25\
         --samples 0.01\
+        --samples 0.001\
 
 prepare: input/$N-$V-25pct.plans.xml.gz
 
