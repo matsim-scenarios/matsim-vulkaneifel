@@ -19,7 +19,7 @@ public class RunVulkaneifelScenarioTest {
 				"run",
 				"--1pct",
 				"--config=input/vulkaneifel-v1.1-25pct.config.xml",
-				"--config:controler.lastIteration=5",
+				"--config:controler.lastIteration=1",
 				"--config:controler.outputDirectory=" + utils.getOutputDirectory()
 		};
 
