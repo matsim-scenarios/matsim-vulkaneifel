@@ -2,10 +2,7 @@ package org.matsim.prepare;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.application.MATSimAppCommand;
@@ -13,6 +10,7 @@ import org.matsim.contrib.osm.networkReader.LinkProperties;
 import org.matsim.contrib.osm.networkReader.OsmTags;
 import org.matsim.contrib.osm.networkReader.SupersonicOsmNetworkReader;
 import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
+import org.matsim.core.network.algorithms.NetworkSimplifier;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.geotools.MGC;
@@ -20,7 +18,6 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import picocli.CommandLine;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,7 +71,10 @@ public class CreateNetwork implements MATSimAppCommand {
 				.build()
 				.read(osmnetwork);
 
-		log.info("Finished parsing network. Start Network cleaner.");
+		log.info("Finished parsing network. Start Network simplifier.");
+		new NetworkSimplifier().run(network);
+
+		log.info("Finished simplifying network. Start Network cleaner.");
 		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.car));
 		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.ride));
 		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
