@@ -41,6 +41,9 @@ public class CreateNetwork implements MATSimAppCommand {
 	@CommandLine.Option(names = "--veryDetailedArea", description = "path to shape that covers very detailed network", required = true)
 	private String veryDetailedArea;
 
+	@CommandLine.Option(names = "--buffer", description = "Buffer for semidetailed area in meter", defaultValue = "10000")
+	private double buffer;
+
 	private static final Logger log = LogManager.getLogger(CreateNetwork.class);
 	private static final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation("EPSG:4326", "EPSG:25832");
 
@@ -102,22 +105,7 @@ public class CreateNetwork implements MATSimAppCommand {
 
 	private Geometry getSemiDetailedAreaBox(Geometry veryDetailedAreaBox){
 
-		Point center = veryDetailedAreaBox.getCentroid();
-
-		double highestDistance = Arrays.stream(veryDetailedAreaBox.getCoordinates())
-				.map(coordinate -> Math.abs(center.getX() - MGC.coordinate2Point(coordinate).getX()))
-				.reduce(Math::max)
-				.get() * 4;
-
-		var left = center.getX() - highestDistance;
-		var right = center.getX() + highestDistance;
-		var top = center.getY() + highestDistance;
-		var bottom = center.getY() - highestDistance;
-
-		var geometryPolygon = new GeometryFactory().createPolygon(new Coordinate[]{
-				new Coordinate(left, top), new Coordinate(right, top), new Coordinate(right, bottom), new Coordinate(left, bottom), new Coordinate(left, top)});
-
-		return new GeometryFactory().createGeometry(geometryPolygon);
+		return veryDetailedAreaBox.buffer(buffer);
 	}
 
 	private Geometry getVeryDetailedAreaBox(String pathToVeryDetailedArea) {
