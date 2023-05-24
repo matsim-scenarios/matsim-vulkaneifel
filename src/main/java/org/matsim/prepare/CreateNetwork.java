@@ -72,7 +72,9 @@ public class CreateNetwork implements MATSimAppCommand {
 				.read(osmnetwork);
 
 		log.info("Finished parsing network. Start Network simplifier.");
-		new NetworkSimplifier().run(network);
+		NetworkSimplifier simplifier = new NetworkSimplifier();
+		simplifier.setMergeLinkStats(false);
+		simplifier.run(network);
 
 		log.info("Finished simplifying network. Start Network cleaner.");
 		MultimodalNetworkCleaner cleaner = new MultimodalNetworkCleaner(network);
