@@ -3,8 +3,11 @@ package org.matsim.prepare;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.locationtech.jts.geom.Geometry;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.application.MATSimAppCommand;
 import org.matsim.contrib.osm.networkReader.LinkProperties;
 import org.matsim.contrib.osm.networkReader.OsmTags;
@@ -18,11 +21,13 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import picocli.CommandLine;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Set;
 
 @CommandLine.Command(
-		name="network",
+		name = "network",
 		description = "Create matsim network from osm data",
 		showDefaultValues = true
 )
@@ -83,6 +88,9 @@ public class CreateNetwork implements MATSimAppCommand {
 		cleaner.run(Set.of(TransportMode.ride));
 		cleaner.removeNodesWithoutLinks();
 
+		roundCoords(network);
+
+
 		log.info("Finished cleaning network. Write network");
 		new NetworkWriter(network).write(this.output);
 
@@ -90,7 +98,21 @@ public class CreateNetwork implements MATSimAppCommand {
 		return 0;
 	}
 
-	private static Geometry getGeometries(String path){
+	private void roundCoords(Network network) {
+
+		for (Node node : network.getNodes().values()) {
+			Coord coord = node.getCoord();
+
+			BigDecimal x = BigDecimal.valueOf(coord.getX()).setScale(2, RoundingMode.HALF_UP);
+			BigDecimal y = BigDecimal.valueOf(coord.getY()).setScale(2, RoundingMode.HALF_UP);
+
+			Coord rounded = new Coord(x.doubleValue(), y.doubleValue());
+
+			node.setCoord(rounded);
+		}
+	}
+
+	private static Geometry getGeometries(String path) {
 
 		//dilutionArea needs to be a single shape file
 		log.info("reading in very detailed area file from " + path);
@@ -107,7 +129,7 @@ public class CreateNetwork implements MATSimAppCommand {
 				.get();
 	}
 
-	private Geometry getSemiDetailedAreaBox(Geometry veryDetailedAreaBox){
+	private Geometry getSemiDetailedAreaBox(Geometry veryDetailedAreaBox) {
 
 		return veryDetailedAreaBox.buffer(buffer);
 	}
