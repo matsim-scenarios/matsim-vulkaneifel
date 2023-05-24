@@ -75,9 +75,11 @@ public class CreateNetwork implements MATSimAppCommand {
 		new NetworkSimplifier().run(network);
 
 		log.info("Finished simplifying network. Start Network cleaner.");
-		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.car));
-		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.ride));
-		new MultimodalNetworkCleaner(network).run(Set.of(TransportMode.bike));
+		MultimodalNetworkCleaner cleaner = new MultimodalNetworkCleaner(network);
+		cleaner.run(Set.of(TransportMode.car));
+		cleaner.run(Set.of(TransportMode.bike));
+		cleaner.run(Set.of(TransportMode.ride));
+		cleaner.removeNodesWithoutLinks();
 
 		log.info("Finished cleaning network. Write network");
 		new NetworkWriter(network).write(this.output);
