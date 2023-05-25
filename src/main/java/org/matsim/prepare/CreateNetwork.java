@@ -88,7 +88,7 @@ public class CreateNetwork implements MATSimAppCommand {
 		cleaner.run(Set.of(TransportMode.ride));
 		cleaner.removeNodesWithoutLinks();
 
-		roundCoords(network);
+		roundCoordsAndLinkLength(network);
 
 
 		log.info("Finished cleaning network. Write network");
@@ -98,7 +98,7 @@ public class CreateNetwork implements MATSimAppCommand {
 		return 0;
 	}
 
-	private void roundCoords(Network network) {
+	private void roundCoordsAndLinkLength(Network network) {
 
 		for (Node node : network.getNodes().values()) {
 			Coord coord = node.getCoord();
@@ -110,6 +110,15 @@ public class CreateNetwork implements MATSimAppCommand {
 
 			node.setCoord(rounded);
 		}
+
+		for (Link link : network.getLinks().values()) {
+
+			double length = link.getLength();
+
+			BigDecimal l = BigDecimal.valueOf(length).setScale(2, RoundingMode.HALF_UP);
+			link.setLength(l.doubleValue());
+		}
+
 	}
 
 	private static Geometry getGeometries(String path) {
