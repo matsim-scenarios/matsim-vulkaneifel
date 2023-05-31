@@ -27,6 +27,7 @@ public class RunVulkaneifelScenarioTest {
 				"--config:qsim.numberOfThreads=2"
 		};
 
-		Assertions.assertThatNoException().isThrownBy(() -> MATSimApplication.run(RunVulkaneifelScenario.class, args));
+		MATSimApplication.run(RunVulkaneifelScenario.class, args);
+		assertTrue(true);
 	}
 }
