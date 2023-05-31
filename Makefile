@@ -1,121 +1,172 @@
-VERSION := nrw-sued-rlp-saar
-SHP := NRW-Sued-Rlp-Saar.shp
-OSM := network.osm.pbf
-BIGBUS := big-bus-schedule
-TRAIN := vulkaneifel-train
-BUS := vulkaneifel-bus
-BUS_EDIT := $(BUS)-edit
-CONFIG := config_vulkaneifel-test.xml
-OUTPUT := ../vulkaneifel-1.0
+N := vulkaneifel
+V := v1.1
+CRS := EPSG:25832
+DILUTION_AREA := input/dilutionArea/dilutionArea.shp
+JAR := matsim-vulkaneifel-1.1-SNAPSHOT.jar
+
+REGIONS := baden-wuerttemberg bayern brandenburg bremen hamburg hessen mecklenburg-vorpommern niedersachsen nordrhein-westfalen\
+	rheinland-pfalz saarland sachsen sachsen-anhalt schleswig-holstein thueringen
+
+SHP_FILES := $(patsubst %, input/shp/%-210101-free.shp.zip, $(REGIONS))
+
+# Required files
+input/network.osm.pbf:
+	curl https://download.geofabrik.de/europe/germany-230101.osm.pbf -o $@\
+
+input/shp/VG5000_GEM.shp.zip:
+	curl https://daten.gdz.bkg.bund.de/produkte/vg/vg5000_0101/aktuell/vg5000_01-01.utm32s.shape.ebenen.zip -o input/shp/VG5000_GEM.shp.zip\
+
+	unzip input/shp/VG5000_GEM.shp.zip -d input/shp/
+
+input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip:
+	curl https://svn.vsp.tu-berlin.de/repos/shared-svn/projects/matsim-germany/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip -o $@
+
+input/gtfs/regio-s-train-gtfs-2021-11-14.zip:
+	curl https://svn.vsp.tu-berlin.de/repos/shared-svn/projects/matsim-germany/gtfs/regio-s-train-gtfs-2021-11-14.zip -o $@
+
+input/dilutionArea/dilutionArea.shp:
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shp -o $@\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shx -o input/dilutionArea/dilutionArea.shx\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.prj -o input/dilutionArea/dilutionArea.prj\
+
+input/temp/population.xml.gz:
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/population.xml.gz -o $@\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/personAttributes.xml.gz -o input/temp/personAttributes.xml.gz\
+
+input/temp/german_freight.25pct.plans.xml.gz:
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v2/german_freight.25pct.plans.xml.gz -o input/temp/german_freight.25pct.plans.xml.gz\
+
+	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v2/germany-europe-network.xml.gz -o input/temp/germany-europe-network.xml.gz\
+
+${SHP_FILES} :
+	curl https://download.geofabrik.de/europe/germany/$(@:input/shp/%=%) -o $@\
+
+input/landuse/landuse.shp: ${SHP_FILES}
+	java -Djava.io.tmpdir=${TMPDIR} -Xmx20G -jar $(JAR) prepare create-landuse-shp\
+		$^\
+		--target-crs EPSG:25832\
+		--output $@\
 
 #create network from osm.pbf
-Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz:
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare network\
-		--output $(VERSION)/temp/\
-		--osmnetwork osm/$(OSM)\
-		--veryDetailedArea dilutionArea/dilutionArea.shp\
-	
-#create big bus schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare pt-from-gtfs\
-		gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-		--network $(VERSION)/temp/vulkaneifel-network.xml.gz\
-		--name $(BIGBUS)\
-		--date 2021-11-21 2021-11-22\
-		--target-crs EPSG:25832\
-		--shp shp/$(SHP)\
-		--output $(VERSION)/temp
+input/$N-$V-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutionArea.shp
+	java -Xmx48G -jar $(JAR) prepare network\
+		--output $@\
+		--osmnetwork input/network.osm.pbf\
+		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
+		--buffer 20000\
+		
+#create transit schedule
+input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz input/shp/VG5000_GEM.shp.zip input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip input/gtfs/regio-s-train-gtfs-2021-11-14.zip
+	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
+			input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
+			input/gtfs/regio-s-train-gtfs-2021-11-14.zip\
+			--prefix bus_,short_\
+			--shp input/bus-area/bus-area.shp \
+			--shp input/shp/vg5000_01-01.utm32s.shape.ebenen/vg5000_ebenen_0101/VG5000_GEM.shp \
+			--network input/$N-$V-network.xml.gz\
+			--name $N-$V\
+			--date "2021-11-24"\
+			--target-crs EPSG:25832\
+			--output input/temp\
 
-#create small bus schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-network.xml.gz
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare pt-from-gtfs\
-		gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-		--network $(VERSION)/temp/vulkaneifel-network.xml.gz\
-		--name $(BUS)\
-		--date 2021-11-21 2021-11-22\
+#create train line
+	java -jar $(JAR) prepare create-train-line	\
+		--network input/temp/$N-$V-network-with-pt.xml.gz	\
+		--schedule input/temp/$N-$V-transitSchedule.xml.gz	\
+		--vehicles input/temp/$N-$V-transitVehicles.xml.gz	\
+		--shp $(DILUTION_AREA)\
+		--shp-crs EPSG:25832\
 		--target-crs EPSG:25832\
-		--shp dilutionArea/dilutionArea.shp\
-		--output $(VERSION)/temp
+		--sev-id bus_SEV---1747\
+		--name $N-$V\
+		--output input/temp\
 
 #remove sev line from small schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz
-	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare remove-bus-line\
-		--schedule $(VERSION)/temp/$(BUS)-transitSchedule.xml.gz\
-		--name $(BUS_EDIT)\
-		--output $(VERSION)/temp\
-		--lineId SEV---1747
-		
-#create regional-train-schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-regional-train-scheduletrain-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-big-bus-schedule.xml.gz
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare create-train-line	\
-		--network $(VERSION)/temp/$(BIGBUS)-network-with-pt.xml.gz	\
-		--schedule $(VERSION)/temp/$(BIGBUS)-transitSchedule.xml.gz	\
-		--vehicles $(VERSION)/temp/$(BIGBUS)-transitVehicles.xml.gz	\
-		--shp dilutionArea/dilutionArea.shp\
-		--shp-crs EPSG:25832\
-        --target-crs EPSG:25832\
-		--name vulkaneifel\
-		--output $(VERSION)/temp
+	java -jar $(JAR) prepare remove-bus-line\
+		--schedule input/temp/$N-$V-transitSchedule.xml.gz\
+		--name $N-$V\
+		--output input/temp\
+		--lineId bus_SEV---1747\
 
-#create train schedule
-Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-bus-schedule-without-SEV-line.xml.gz
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare pt-from-gtfs\
-		gtfs/regio-s-train-gtfs-2021-11-14.zip\
-        --network $(VERSION)/temp/vulkaneifel-network.xml.gz\
-        --name $(TRAIN)\
-        --date 2021-11-21 2021-11-22\
-        --target-crs EPSG:25832\
-        --shp shp/$(SHP)\
-        --output $(VERSION)/temp
+#merge regional train line into complete schedule
+	java -jar $(JAR) prepare merge-transit-schedules\
+		input/temp/$N-$V-without-SEV-transitSchedule.xml.gz\
+		input/temp/$N-$V-transitSchedule-only-regional-train.xml.gz\
+		--vehicles input/temp/$N-$V-transitVehicles.xml.gz\
+		--vehicles input/temp/$N-$V-transitVehicles-only-regional-train.xml.gz\
+		--network input/$N-$V-network.xml.gz\
+		--name $N-$V\
+		--output input\
 
-#merge bus and train schedule together
-Prepare-Runs_Make/input/vulkaneifel-complete-schedule.xml.gz: Prepare-Runs_Make/temp/vulkaneifel-pt-train-schedule.xml.gz
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare merge-transit-schedules\
-        $(VERSION)/temp/$(TRAIN)-transitSchedule.xml.gz\
-        $(VERSION)/temp/vulkaneifel-bus-edit-bus-schedule-without-SEV.xml.gz\
-		$(VERSION)/temp/vulkaneifel-transitSchedule-only-regional-train.xml.gz\
-		--vehicles $(VERSION)/temp/$(BUS)-transitVehicles.xml.gz\
-        $(VERSION)/temp/$(TRAIN)-transitVehicles.xml.gz\
-		$(VERSION)/temp/vulkaneifel-transitVehicles-only-regional-train.xml.gz\
-		--name vulkaneifel\
-		--network $(VERSION)/temp/vulkaneifel-network.xml.gz\
-		--output $(OUTPUT)\
+input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz input/dilutionArea.shp
+	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
+		 --network input/temp/germany-europe-network.xml.gz\
+		 --input-crs $(CRS)\
+		 --target-crs $(CRS)\
+		 --shp $(DILUTION_AREA)\
+		 --output $@
 
-Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz: Prepare-Runs_Make/input/vulkaneifel-complete-schedule.xml.gz
-	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare trajectory-to-plans	\
-	--name tmp	--sample-size 0.25	\
-	--attributes population/personAttributes.xml.gz	\
-	--population population/population.xml.gz	\
-	--output $(VERSION)/temp	\
-	--target-crs EPSG:25832\
+input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz  input/$N-$V-transitSchedule.xml.gz
+	java -jar $(JAR) prepare trajectory-to-plans\
+    	--name $N-$V	--sample-size 0.25\
+		--max-typical-duration 0\
+    	--attributes input/temp/personAttributes.xml.gz\
+    	--population input/temp/population.xml.gz\
+    	--output input/\
+    	--target-crs $(CRS)\
 
-#grid2coordinates
-	java -Xmx10G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare resolve-grid-coords	\
-	$(VERSION)/temp/tmp-25pct.plans.xml.gz	\
-	--grid-resolution 300	\
-	--input-crs EPSG:25832	\
-	--landuse landuse/landuse.shp	\
-	--network $(VERSION)/vulkaneifel-network-with-pt.xml.gz	\
-	--output $(VERSION)/temp/tmp-25pct.plans.xml.gz\
+	java -Xmx10G -jar $(JAR) prepare resolve-grid-coords\
+    	$@\
+    	--grid-resolution 300\
+    	--input-crs $(CRS)\
+    	--landuse input/landuse/landuse.shp\
+    	--output $@\
 
-#clean population
-	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare clean-population	\
-	--plans $(VERSION)/temp/tmp-25pct.plans.xml.gz	\
-	--remove-routes	\
-	--remove-unselected-plans	\
-	--remove-activity-location	\
-	--trips-to-legs	\
-	--output $(OUTPUT)/vulkaneifel-25pct-plans.xml.gz\
+	java -jar $(JAR) prepare generate-short-distance-trips\
+		--population $@\
+		--input-crs $(CRS)\
+		--shp $(DILUTION_AREA)\
+		--shp-crs $(CRS)\
+		--num-trips 6000\
+		--range 1000\
+		--output $@\
 
-#downsampling
-	java -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar prepare downsample-population	\
-	$(OUTPUT)/vulkaneifel-25pct-plans.xml.gz	\
-	--sample-size 0.25	\
-	--samples 0.1 0.01\
+	java -jar $(JAR) prepare split-activity-types-duration\
+		--input $@ --output $@
 
-prepare: Prepare-Runs_Make/input/vulkaneifel-plans.xml.gz
-	echo "Done, Have fun with your Vulkaneifel-Scenario ;)"
+	java -jar $(JAR) prepare adjust-activity-to-link-distances\
+		$@\
+		--shp $(DILUTION_AREA)\
+		--scale 1.15\
+		--input-crs $(CRS)\
+		--network input/$N-$V-network.xml.gz\
+		--output $@\
 
-run: prepare
-	java -Xmx80G -jar matsim-vulkaneifel-1.0-SNAPSHOT.jar run --config $(VERSION)/$(CONFIG) --config:controler.runId=$(VERSION) --output $(VERSION)/output/
-	echo "Test-run finished!"
+	 java -jar $(JAR) prepare fix-subtour-modes\
+ 		--coord-dist 100\
+ 		--input $@\
+ 		--output $@\
+
+	java -jar $(JAR) prepare population\
+		$@\
+		--output $@\
+
+	java -jar $(JAR) prepare extract-home-coordinates $@\
+		--csv input/$N-$V-homes.csv
+
+	java -jar $(JAR) prepare merge-populations\
+		$@\
+		input/freight-trips.xml.gz\
+		 --output $@\
+
+	java -jar $(JAR) prepare downsample-population $@\
+	 	--sample-size 0.25\
+        --samples 0.01\
+        --samples 0.001\
+
+prepare: input/$N-$V-25pct.plans.xml.gz
+
+pt: input/$N-$V-transitSchedule.xml.gz
