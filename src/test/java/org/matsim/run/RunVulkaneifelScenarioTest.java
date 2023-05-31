@@ -21,7 +21,7 @@ public class RunVulkaneifelScenarioTest {
 				"run",
 				"--config=input/vulkaneifel-v1.1-25pct.config.xml",
 				"--config:plans.inputPlansFile=https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.1/input/vulkaneifel-v1.1-1pct.plans.xml.gz",
-				"--config:controler.lastIteration=1",
+				"--config:controler.lastIteration=0",
 				"--config:controler.outputDirectory=" + utils.getOutputDirectory(),
 				"--config:global.numberOfThreads=2",
 				"--config:qsim.numberOfThreads=2"
