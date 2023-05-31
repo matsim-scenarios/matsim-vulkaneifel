@@ -56,6 +56,7 @@ input/$N-$V-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutionAre
 		--output $@\
 		--osmnetwork input/network.osm.pbf\
 		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
+		--buffer 20000\
 		
 #create transit schedule
 input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz input/shp/VG5000_GEM.shp.zip input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip input/gtfs/regio-s-train-gtfs-2021-11-14.zip
