@@ -11,6 +11,7 @@ import org.matsim.contrib.vsp.scenario.SnzActivities;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.prepare.*;
+import org.matsim.smallScaleCommercialTrafficGeneration.GenerateSmallScaleCommercialTrafficDemand;
 import picocli.CommandLine;
 
 @CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version = RunVulkaneifelScenario.VERSION)
@@ -18,7 +19,7 @@ import picocli.CommandLine;
 		CreateNetwork.class, CreateTransitScheduleFromGtfs.class, CreateRegionalTrainLine.class, RemoveBusLineFromSmallSchedule.class, ExtractHomeCoordinates.class,
 		MergeTransitSchedules.class, TrajectoryToPlans.class, GenerateShortDistanceTrips.class, CleanPopulation.class, ResolveGridCoordinates.class, MergePopulations.class,
 		DownSamplePopulation.class, ExtractRelevantFreightTrips.class, FixSubtourModes.class, AdjustActivityToLinkDistances.class, CreateLandUseShp.class, PreparePopulation.class,
-		SplitActivityTypesDuration.class
+		SplitActivityTypesDuration.class, GenerateSmallScaleCommercialTrafficDemand.class
 })
 @MATSimApplication.Analysis({CheckPopulation.class})
 public class RunVulkaneifelScenario extends MATSimApplication {

@@ -1,13 +1,12 @@
 N := vulkaneifel
 V := v1.2
 CRS := EPSG:25832
-DILUTION_AREA := input/dilutionArea/dilutionArea.shp
 JAR := matsim-vulkaneifel-*.jar
 
-REGIONS := baden-wuerttemberg bayern brandenburg bremen hamburg hessen mecklenburg-vorpommern niedersachsen nordrhein-westfalen\
-	rheinland-pfalz saarland sachsen sachsen-anhalt schleswig-holstein thueringen
+svn := ../public-svn/matsim/scenarios/countries/de/vulkaneifel
+germany := ../shared-svn/projects/matsim-germany
+DILUTION_AREA := $(svn)/v1.0/input/snz-data/20210521_vulkaneifel/dilutionArea.shp
 
-SHP_FILES := $(patsubst %, input/shp/%-210101-free.shp.zip, $(REGIONS))
 
 # Required files
 input/network.osm.pbf:
@@ -18,20 +17,8 @@ input/shp/VG5000_GEM.shp.zip:
 
 	unzip input/shp/VG5000_GEM.shp.zip -d input/shp/
 
-input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip:
-	curl https://svn.vsp.tu-berlin.de/repos/shared-svn/projects/matsim-germany/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip -o $@
-
-input/gtfs/regio-s-train-gtfs-2021-11-14.zip:
-	curl https://svn.vsp.tu-berlin.de/repos/shared-svn/projects/matsim-germany/gtfs/regio-s-train-gtfs-2021-11-14.zip -o $@
-
-input/dilutionArea/dilutionArea.shp:
-	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shp -o $@\
-
-	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.shx -o input/dilutionArea/dilutionArea.shx\
-
-	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/dilutionArea.prj -o input/dilutionArea/dilutionArea.prj\
-
 input/temp/population.xml.gz:
+	mkdir -p input/temp
 	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/population.xml.gz -o $@\
 
 	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/openVulkaneifel/input/snz-data/20210521_vulkaneifel/personAttributes.xml.gz -o input/temp/personAttributes.xml.gz\
@@ -41,28 +28,20 @@ input/temp/german_freight.25pct.plans.xml.gz:
 
 	curl https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/german-wide-freight/v2/germany-europe-network.xml.gz -o input/temp/germany-europe-network.xml.gz\
 
-${SHP_FILES} :
-	curl https://download.geofabrik.de/europe/germany/$(@:input/shp/%=%) -o $@\
-
-input/landuse/landuse.shp: ${SHP_FILES}
-	java -Djava.io.tmpdir=${TMPDIR} -Xmx20G -jar $(JAR) prepare create-landuse-shp\
-		$^\
-		--target-crs EPSG:25832\
-		--output $@\
 
 #create network from osm.pbf
-input/$N-$V-network.xml.gz: input/network.osm.pbf input/dilutionArea/dilutionArea.shp
+input/$N-$V-network.xml.gz: input/network.osm.pbf
 	java -Xmx48G -jar $(JAR) prepare network\
 		--output $@\
 		--osmnetwork input/network.osm.pbf\
-		--veryDetailedArea input/dilutionArea/dilutionArea.shp\
+		--veryDetailedArea $(DILUTION_AREA)\
 		--buffer 20000\
 		
 #create transit schedule
-input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz input/shp/VG5000_GEM.shp.zip input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip input/gtfs/regio-s-train-gtfs-2021-11-14.zip
+input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz input/shp/VG5000_GEM.shp.zip
 	java -Djava.io.tmpdir=${TMPDIR} -Xmx48G -jar $(JAR) prepare transit-from-gtfs\
-			input/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
-			input/gtfs/regio-s-train-gtfs-2021-11-14.zip\
+			$(germany)/gtfs/bus-tram-subway-gtfs-2021-11-14t.zip\
+			$(germany)/gtfs/regio-s-train-gtfs-2021-11-14.zip\
 			--prefix bus_,short_\
 			--shp input/bus-area/bus-area.shp \
 			--shp input/shp/vg5000_01-01.utm32s.shape.ebenen/vg5000_ebenen_0101/VG5000_GEM.shp \
@@ -107,8 +86,10 @@ input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight
 		 --input-crs $(CRS)\
 		 --target-crs $(CRS)\
 		 --shp $(DILUTION_AREA)\
+		 --shp-crs EPSG:25832\
 		 --output $@
 
+# FIXME: @ewert: Upload required files and adapt path
 input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 	java -jar $(JAR) prepare generate-small-scale-commercial-traffic\
 	  input/commercialTraffic\
@@ -117,9 +98,9 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 	 --creationOption createNewCarrierFile\
 	 --landuseConfiguration useOSMBuildingsAndLanduse\
 	 --smallScaleCommercialTrafficType completeSmallScaleCommercialTraffic\
-	 --zoneShapeFileName $(shared)/data/input-commercialTraffic/leipzig_zones_25832.shp\
-	 --buildingsShapeFileName $(shared)/data/input-commercialTraffic/leipzig_buildings_25832.shp\
-	 --landuseShapeFileName $(shared)/data/input-commercialTraffic/leipzig_landuse_25832.shp\
+	 --zoneShapeFileName $(svn)/data/input-commercialTraffic/leipzig_zones_25832.shp\
+	 --buildingsShapeFileName $(svn)/data/input-commercialTraffic/leipzig_buildings_25832.shp\
+	 --landuseShapeFileName $(svn)/data/input-commercialTraffic/leipzig_landuse_25832.shp\
 	 --shapeCRS "EPSG:25832"\
 	 --resistanceFactor "0.005"\
 	 --nameOutputPopulation $(notdir $@)\
@@ -127,7 +108,7 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 
 	mv output/commercialTraffic/$(notdir $@) $@
 
-input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$N-$V-transitSchedule.xml.gz
+input/$N-$V-25pct.plans.xml.gz: input/temp/population.xml.gz input/freight-trips.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$N-$V-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
     	--name $N-$V	--sample-size 0.25\
 		--max-typical-duration 0\
@@ -140,7 +121,7 @@ input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.
     	$@\
     	--grid-resolution 300\
     	--input-crs $(CRS)\
-    	--landuse input/landuse/landuse.shp\
+    	--landuse $(germany)/landuse/landuse.shp\
     	--output $@\
 
 	java -jar $(JAR) prepare generate-short-distance-trips\
