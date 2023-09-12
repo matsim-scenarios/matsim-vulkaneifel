@@ -1,8 +1,8 @@
 # The MATSim Open Vulkaneifel Scenario
 
-![Build Status](https://github.com/matsim-scenarios/matsim-vulkaneifel/workflows/build/badge.svg?branch=main)
+![Build Status](https://github.com/matsim-scenarios/matsim-vulkaneifel/workflows/build/badge.svg?branch=master)
 ![license](https://img.shields.io/github/license/matsim-scenarios/matsim-vulkaneifel.svg)
-![JDK](https://img.shields.io/badge/JDK-11+-green.svg)
+![JDK](https://img.shields.io/badge/JDK-17+-green.svg)
 
 ![Vulkaneifel MATSim network and agents)](visualization-vulkaneifel.png "Vulkaneifel MATSim network and agents")
 
