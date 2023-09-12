@@ -23,7 +23,7 @@ import picocli.CommandLine;
 @MATSimApplication.Analysis({CheckPopulation.class})
 public class RunVulkaneifelScenario extends MATSimApplication {
 
-	public static final String VERSION = "1.1";
+	public static final String VERSION = "1.2";
 
 	@CommandLine.Mixin
 	private final SampleOptions sample = new SampleOptions(25, 1);

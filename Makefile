@@ -1,8 +1,8 @@
 N := vulkaneifel
-V := v1.1
+V := v1.2
 CRS := EPSG:25832
 DILUTION_AREA := input/dilutionArea/dilutionArea.shp
-JAR := matsim-vulkaneifel-1.1-SNAPSHOT.jar
+JAR := matsim-vulkaneifel-*.jar
 
 REGIONS := baden-wuerttemberg bayern brandenburg bremen hamburg hessen mecklenburg-vorpommern niedersachsen nordrhein-westfalen\
 	rheinland-pfalz saarland sachsen sachsen-anhalt schleswig-holstein thueringen
@@ -101,7 +101,7 @@ input/$N-$V-transitSchedule.xml.gz: input/$N-$V-network.xml.gz input/shp/VG5000_
 		--name $N-$V\
 		--output input\
 
-input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz input/dilutionArea.shp
+input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz
 	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
 		 --network input/temp/germany-europe-network.xml.gz\
 		 --input-crs $(CRS)\
@@ -109,7 +109,25 @@ input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight
 		 --shp $(DILUTION_AREA)\
 		 --output $@
 
-input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz  input/$N-$V-transitSchedule.xml.gz
+input/plans-completeSmallScaleCommercialTraffic.xml.gz:
+	java -jar $(JAR) prepare generate-small-scale-commercial-traffic\
+	  input/commercialTraffic\
+	 --sample 0.25\
+	 --jspritIterations 1\
+	 --creationOption createNewCarrierFile\
+	 --landuseConfiguration useOSMBuildingsAndLanduse\
+	 --smallScaleCommercialTrafficType completeSmallScaleCommercialTraffic\
+	 --zoneShapeFileName $(shared)/data/input-commercialTraffic/leipzig_zones_25832.shp\
+	 --buildingsShapeFileName $(shared)/data/input-commercialTraffic/leipzig_buildings_25832.shp\
+	 --landuseShapeFileName $(shared)/data/input-commercialTraffic/leipzig_landuse_25832.shp\
+	 --shapeCRS "EPSG:25832"\
+	 --resistanceFactor "0.005"\
+	 --nameOutputPopulation $(notdir $@)\
+	 --pathOutput output/commercialTraffic
+
+	mv output/commercialTraffic/$(notdir $@) $@
+
+input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.xml.gz input/freight-trips.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$N-$V-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
     	--name $N-$V	--sample-size 0.25\
 		--max-typical-duration 0\
@@ -160,6 +178,7 @@ input/$N-$V-25pct.plans.xml.gz: input/landuse/landuse.shp input/temp/population.
 	java -jar $(JAR) prepare merge-populations\
 		$@\
 		input/freight-trips.xml.gz\
+		input/plans-completeSmallScaleCommercialTraffic.xml.gz\
 		 --output $@\
 
 	java -jar $(JAR) prepare downsample-population $@\
