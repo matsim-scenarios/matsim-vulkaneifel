@@ -10,7 +10,9 @@ import org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs;
 import org.matsim.contrib.vsp.scenario.SnzActivities;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.controler.Controler;
 import org.matsim.prepare.*;
+import org.matsim.simwrapper.SimWrapperModule;
 import org.matsim.smallScaleCommercialTrafficGeneration.GenerateSmallScaleCommercialTrafficDemand;
 import picocli.CommandLine;
 
@@ -54,5 +56,12 @@ public class RunVulkaneifelScenario extends MATSimApplication {
 		config.qsim().setUsePersonIdForMissingVehicleId(false);
 
 		return config;
+	}
+
+	@Override
+	protected void prepareControler(Controler controler) {
+
+		controler.addOverridingModule(new SimWrapperModule());
+
 	}
 }

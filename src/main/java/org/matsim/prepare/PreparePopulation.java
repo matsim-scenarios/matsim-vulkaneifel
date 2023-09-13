@@ -2,13 +2,16 @@ package org.matsim.prepare;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.application.MATSimAppCommand;
+import org.matsim.application.prepare.population.ExtractHomeCoordinates;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 import picocli.CommandLine;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.SplittableRandom;
@@ -38,9 +41,11 @@ public class PreparePopulation implements MATSimAppCommand {
 
 		for (Person person : population.getPersons().values()) {
 
+			ExtractHomeCoordinates.setHomeCoordinate(person);
+
 			// Set car availability to "never" for agents below 18 years old
 			// Standardize the attribute "age"
-			String avail = "awalys";
+			String avail = "always";
 			Object age = person.getAttributes().getAttribute("microm:modeled:age");
 			if (age != null) {
 				PersonUtils.setAge(person, (int) age);

@@ -7,7 +7,7 @@
 		<!-- Define MATSim version here -->
 
 		<!-- snapshot == not recommended: rather use PR-labelled release!-->
-		<version>16.0-PR2763</version>
+		<version>16.0-PR2765</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -59,6 +59,11 @@
 					<artifactId>gtfs2matsim</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.matsim.contrib</groupId>
+			<artifactId>simwrapper</artifactId>
+			<version>${matsim.version}</version>
 		</dependency>
 
 		<!-- Custom dependencies -->

@@ -108,7 +108,7 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 
 	mv output/commercialTraffic/$(notdir $@) $@
 
-input/$N-$V-25pct.plans.xml.gz: input/temp/population.xml.gz input/freight-trips.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$N-$V-transitSchedule.xml.gz
+input/$N-$V-25pct.plans-initial.xml.gz: input/temp/population.xml.gz input/freight-trips.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$N-$V-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
     	--name $N-$V	--sample-size 0.25\
 		--max-typical-duration 0\
@@ -167,6 +167,6 @@ input/$N-$V-25pct.plans.xml.gz: input/temp/population.xml.gz input/freight-trips
         --samples 0.01\
         --samples 0.001\
 
-prepare: input/$N-$V-25pct.plans.xml.gz
+prepare: input/$N-$V-25pct.plans-initial.xml.gz
 
 pt: input/$N-$V-transitSchedule.xml.gz
