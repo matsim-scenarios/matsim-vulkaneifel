@@ -97,7 +97,7 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 	 --creationOption createNewCarrierFile\
 	 --landuseConfiguration useOSMBuildingsAndLanduse\
 	 --smallScaleCommercialTrafficType completeSmallScaleCommercialTraffic\
-	 --zoneShapeFileName $(svn)/v1.2/input/shp/buildings_vulkaneifel_25832.shp\
+	 --zoneShapeFileName $(svn)/v1.2/input/shp/zones_vulkaneifel_commercialTraffic_25832.shp\
 	 --buildingsShapeFileName $(svn)/v1.2/input/shp/buildings_vulkaneifel_25832.shp\
 	 --landuseShapeFileName $(svn)/v1.2/input/shp/landuse_vulkaneifel_25832.shp\
 	 --shapeCRS "EPSG:25832"\
