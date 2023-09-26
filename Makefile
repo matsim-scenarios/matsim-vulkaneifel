@@ -98,7 +98,7 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 	 --landuseConfiguration useOSMBuildingsAndLanduse\
 	 --smallScaleCommercialTrafficType completeSmallScaleCommercialTraffic\
 	 --zoneShapeFileName $(svn)/v1.2/input/shp/buildings_vulkaneifel_25832.shp\
-	 --buildingsShapeFileName $(svn)/v1.2/input/shp/leipzig_buildings_25832.shp\
+	 --buildingsShapeFileName $(svn)/v1.2/input/shp/buildings_vulkaneifel_25832.shp\
 	 --landuseShapeFileName $(svn)/v1.2/input/shp/landuse_vulkaneifel_25832.shp\
 	 --shapeCRS "EPSG:25832"\
 	 --resistanceFactor "0.005"\

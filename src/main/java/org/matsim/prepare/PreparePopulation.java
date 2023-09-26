@@ -2,21 +2,19 @@ package org.matsim.prepare;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.application.MATSimAppCommand;
 import org.matsim.application.prepare.population.ExtractHomeCoordinates;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.utils.geometry.CoordUtils;
 import picocli.CommandLine;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.SplittableRandom;
 
-@CommandLine.Command(name = "population", description = "convert SNZ attributes title to MATSim titles")
+@CommandLine.Command(name = "population", description = "Convert SNZ attributes title to MATSim titles")
 public class PreparePopulation implements MATSimAppCommand {
 
 	private static final Logger log = LogManager.getLogger(PreparePopulation.class);
