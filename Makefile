@@ -89,18 +89,17 @@ input/freight-trips.xml.gz: input/$N-$V-network.xml.gz input/temp/german_freight
 		 --shp-crs EPSG:25832\
 		 --output $@
 
-# FIXME: @ewert: Upload required files and adapt path
 input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 	java -jar $(JAR) prepare generate-small-scale-commercial-traffic\
-	  input/commercialTraffic\
+	  input/commercialTraffic/config_demand.xml\
 	 --sample 0.25\
-	 --jspritIterations 1\
+	 --jspritIterations 10\
 	 --creationOption createNewCarrierFile\
 	 --landuseConfiguration useOSMBuildingsAndLanduse\
 	 --smallScaleCommercialTrafficType completeSmallScaleCommercialTraffic\
-	 --zoneShapeFileName $(svn)/data/input-commercialTraffic/leipzig_zones_25832.shp\
-	 --buildingsShapeFileName $(svn)/data/input-commercialTraffic/leipzig_buildings_25832.shp\
-	 --landuseShapeFileName $(svn)/data/input-commercialTraffic/leipzig_landuse_25832.shp\
+	 --zoneShapeFileName $(svn)/v1.2/input/shp/buildings_vulkaneifel_25832.shp\
+	 --buildingsShapeFileName $(svn)/v1.2/input/shp/leipzig_buildings_25832.shp\
+	 --landuseShapeFileName $(svn)/v1.2/input/shp/landuse_vulkaneifel_25832.shp\
 	 --shapeCRS "EPSG:25832"\
 	 --resistanceFactor "0.005"\
 	 --nameOutputPopulation $(notdir $@)\
