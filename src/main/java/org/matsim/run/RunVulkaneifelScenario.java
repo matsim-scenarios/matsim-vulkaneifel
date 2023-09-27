@@ -36,7 +36,7 @@ public class RunVulkaneifelScenario extends MATSimApplication {
 	}
 
 	public RunVulkaneifelScenario() {
-		super(String.format("input/vulkaneifel-v%s-25pct.config.xml", VERSION));
+		super(String.format("input/v%s/vulkaneifel-v%s-25pct.config.xml", VERSION, VERSION));
 	}
 
 	@Override
