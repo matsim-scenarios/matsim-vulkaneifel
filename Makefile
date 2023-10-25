@@ -152,7 +152,7 @@ input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz in
 
 	$(sc) prepare merge-populations\
 		input/temp/population-25pct.plans.xml.gz\
-		input/freight-trips.xml.gz\
+		input/plans-longHaulFreight.xml.gz\
 		input/plans-completeSmallScaleCommercialTraffic.xml.gz\
 		 --output $@\
 
