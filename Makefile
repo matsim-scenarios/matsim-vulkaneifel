@@ -6,9 +6,12 @@ JAR := matsim-vulkaneifel-*.jar
 svn := ../public-svn/matsim/scenarios/countries/de/vulkaneifel
 germany := ../shared-svn/projects/matsim-germany
 
+MEMORY ?= 20G
 DILUTION_AREA := $(svn)/v1.0/input/snz-data/20210521_vulkaneifel/dilutionArea.shp
 NETWORK := $(germany)/maps/germany-230101.osm.pbf
 
+# Scenario creation tool
+sc := java -Xmx$(MEMORY) -XX:+UseParallelGC -jar $(JAR)
 
 input/shp/VG5000_GEM.shp.zip:
 	mkdir -p input/shp
@@ -23,8 +26,8 @@ input/temp/german_freight.25pct.plans.xml.gz:
 
 
 #create network from osm.pbf
-input/$V/$N-$V-network.xml.gz: input/network.osm.pbf
-	java -Xmx20G -jar $(JAR) prepare network\
+input/$V/$N-$V-network.xml.gz:
+	$(sc) prepare network\
 		--output $@\
 		--osmnetwork $(NETWORK)\
 		--veryDetailedArea $(DILUTION_AREA)\
@@ -47,7 +50,7 @@ input/$V/$N-$V-transitSchedule.xml.gz: input/$V/$N-$V-network.xml.gz input/shp/V
 			--output input/temp\
 
 #create train line
-	java -jar $(JAR) prepare create-train-line	\
+	$(sc) prepare create-train-line	\
 		--network input/temp/$N-$V-network-with-pt.xml.gz	\
 		--schedule input/temp/$N-$V-transitSchedule.xml.gz	\
 		--vehicles input/temp/$N-$V-transitVehicles.xml.gz	\
@@ -59,14 +62,14 @@ input/$V/$N-$V-transitSchedule.xml.gz: input/$V/$N-$V-network.xml.gz input/shp/V
 		--output input/temp\
 
 #remove sev line from small schedule
-	java -jar $(JAR) prepare remove-bus-line\
+	$(sc) prepare remove-bus-line\
 		--schedule input/temp/$N-$V-transitSchedule.xml.gz\
 		--name $N-$V\
 		--output input/temp\
 		--lineId bus_SEV---1747\
 
 #merge regional train line into complete schedule
-	java -jar $(JAR) prepare merge-transit-schedules\
+	$(sc) prepare merge-transit-schedules\
 		input/temp/$N-$V-without-SEV-transitSchedule.xml.gz\
 		input/temp/$N-$V-transitSchedule-only-regional-train.xml.gz\
 		--vehicles input/temp/$N-$V-transitVehicles.xml.gz\
@@ -76,7 +79,7 @@ input/$V/$N-$V-transitSchedule.xml.gz: input/$V/$N-$V-network.xml.gz input/shp/V
 		--output input/$V\
 
 input/plans-longHaulFreight.xml.gz: input/$V/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz
-	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
+	$(sc) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
 		 --network input/temp/germany-europe-network.xml.gz\
 		 --input-crs $(CRS)\
 		 --target-crs $(CRS)\
@@ -85,7 +88,7 @@ input/plans-longHaulFreight.xml.gz: input/$V/$N-$V-network.xml.gz input/temp/ger
 		 --output $@
 
 input/plans-completeSmallScaleCommercialTraffic.xml.gz:
-	java -jar $(JAR) prepare generate-small-scale-commercial-traffic\
+	$(sc) prepare generate-small-scale-commercial-traffic\
 	  input/commercialTraffic/config_demand.xml\
 	 --sample 0.25\
 	 --jspritIterations 10\
@@ -103,7 +106,7 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 	mv output/commercialTraffic/$(notdir $@) $@
 
 input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$V/$N-$V-transitSchedule.xml.gz
-	java -jar $(JAR) prepare trajectory-to-plans\
+	$(sc) prepare trajectory-to-plans\
     	--name population --sample-size 0.25\
 		--max-typical-duration 0\
     	--attributes $(svn)/v1.0/input/snz-data/20210521_vulkaneifel/personAttributes.xml.gz\
@@ -111,14 +114,14 @@ input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz in
     	--output input/temp\
     	--target-crs $(CRS)\
 
-	java -Xmx10G -jar $(JAR) prepare resolve-grid-coords\
+	$(sc) prepare resolve-grid-coords\
     	input/temp/population-25pct.plans.xml.gz\
     	--grid-resolution 300\
     	--input-crs $(CRS)\
     	--landuse $(germany)/landuse/landuse.shp\
     	--output input/temp/population-25pct.plans.xml.gz\
 
-	java -jar $(JAR) prepare generate-short-distance-trips\
+	$(sc) prepare generate-short-distance-trips\
 		--population input/temp/population-25pct.plans.xml.gz\
 		--input-crs $(CRS)\
 		--shp $(DILUTION_AREA)\
@@ -127,7 +130,7 @@ input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz in
 		--range 1000\
 		--output input/temp/population-25pct.plans.xml.gz\
 
-	java -jar $(JAR) prepare adjust-activity-to-link-distances\
+	$(sc) prepare adjust-activity-to-link-distances\
 		input/temp/population-25pct.plans.xml.gz\
 		--shp $(DILUTION_AREA)\
 		--scale 1.15\
@@ -136,24 +139,24 @@ input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz in
 		--network input/$V/$N-$V-network.xml.gz\
 		--output input/temp/population-25pct.plans.xml.gz\
 
-	java -jar $(JAR) prepare split-activity-types-duration\
+	$(sc) prepare split-activity-types-duration\
 		--input input/temp/population-25pct.plans.xml.gz --output input/temp/population-25pct.plans.xml.gz
 
-	java -jar $(JAR) prepare fix-subtour-modes\
+	$(sc) prepare fix-subtour-modes\
  		--coord-dist 100\
  		--input input/temp/population-25pct.plans.xml.gz\
  		--output input/temp/population-25pct.plans.xml.gz\
 
-	java -jar $(JAR) prepare population\
+	$(sc) prepare population\
 		input/temp/population-25pct.plans.xml.gz --output input/temp/population-25pct.plans.xml.gz\
 
-	java -jar $(JAR) prepare merge-populations\
+	$(sc) prepare merge-populations\
 		input/temp/population-25pct.plans.xml.gz\
 		input/freight-trips.xml.gz\
 		input/plans-completeSmallScaleCommercialTraffic.xml.gz\
 		 --output $@\
 
-	java -jar $(JAR) prepare downsample-population $@\
+	$(sc) prepare downsample-population $@\
 	 	--sample-size 0.25\
         --samples 0.01\
         --samples 0.001\
