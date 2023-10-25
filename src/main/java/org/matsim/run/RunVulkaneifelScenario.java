@@ -9,7 +9,7 @@ import org.matsim.application.prepare.population.*;
 import org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs;
 import org.matsim.contrib.vsp.scenario.SnzActivities;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.config.groups.RoutingConfigGroup;
 import org.matsim.core.controler.Controler;
 import org.matsim.prepare.*;
 import org.matsim.simwrapper.SimWrapperModule;
@@ -44,14 +44,14 @@ public class RunVulkaneifelScenario extends MATSimApplication {
 
 		SnzActivities.addScoringParams(config);
 
-		config.controler().setOutputDirectory(sample.adjustName(config.controler().getOutputDirectory()));
+		config.controller().setOutputDirectory(sample.adjustName(config.controller().getOutputDirectory()));
 		config.plans().setInputFile(sample.adjustName(config.plans().getInputFile()));
-		config.controler().setRunId(sample.adjustName(config.controler().getRunId()));
+		config.controller().setRunId(sample.adjustName(config.controller().getRunId()));
 
 		config.qsim().setFlowCapFactor(sample.getSize() / 100.0);
 		config.qsim().setStorageCapFactor(sample.getSize() / 100.0);
 
-		config.plansCalcRoute().setAccessEgressType(PlansCalcRouteConfigGroup.AccessEgressType.accessEgressModeToLink);
+		config.routing().setAccessEgressType(RoutingConfigGroup.AccessEgressType.accessEgressModeToLink);
 		config.qsim().setUsingTravelTimeCheckInTeleportation(true);
 		config.qsim().setUsePersonIdForMissingVehicleId(false);
 

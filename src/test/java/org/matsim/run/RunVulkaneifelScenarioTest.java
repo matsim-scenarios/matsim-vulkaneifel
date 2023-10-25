@@ -19,7 +19,7 @@ public class RunVulkaneifelScenarioTest {
 
 		String[] args = {
 				"run",
-				"--config=input/vulkaneifel-v1.1-25pct.config.xml",
+				"--config=input/v1.2/vulkaneifel-v1.2-25pct.config.xml",
 				"--config:plans.inputPlansFile=https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.1/input/vulkaneifel-v1.1-1pct.plans.xml.gz",
 				"--config:controler.lastIteration=1",
 				"--config:controler.outputDirectory=" + utils.getOutputDirectory(),

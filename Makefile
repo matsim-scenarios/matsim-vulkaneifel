@@ -5,12 +5,10 @@ JAR := matsim-vulkaneifel-*.jar
 
 svn := ../public-svn/matsim/scenarios/countries/de/vulkaneifel
 germany := ../shared-svn/projects/matsim-germany
+
 DILUTION_AREA := $(svn)/v1.0/input/snz-data/20210521_vulkaneifel/dilutionArea.shp
+NETWORK := $(germany)/maps/germany-230101.osm.pbf
 
-
-# Required files
-input/network.osm.pbf:
-	curl https://download.geofabrik.de/europe/germany-230101.osm.pbf -o $@\
 
 input/shp/VG5000_GEM.shp.zip:
 	mkdir -p input/shp
@@ -26,9 +24,9 @@ input/temp/german_freight.25pct.plans.xml.gz:
 
 #create network from osm.pbf
 input/$V/$N-$V-network.xml.gz: input/network.osm.pbf
-	java -Xmx48G -jar $(JAR) prepare network\
+	java -Xmx20G -jar $(JAR) prepare network\
 		--output $@\
-		--osmnetwork input/network.osm.pbf\
+		--osmnetwork $(NETWORK)\
 		--veryDetailedArea $(DILUTION_AREA)\
 		--buffer 20000\
 		
@@ -77,7 +75,7 @@ input/$V/$N-$V-transitSchedule.xml.gz: input/$V/$N-$V-network.xml.gz input/shp/V
 		--name $N-$V\
 		--output input/$V\
 
-input/freight-trips.xml.gz: input/$V/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz
+input/plans-longHaulFreight.xml.gz: input/$V/$N-$V-network.xml.gz input/temp/german_freight.25pct.plans.xml.gz
 	java -jar $(JAR) prepare extract-freight-trips input/temp/german_freight.25pct.plans.xml.gz\
 		 --network input/temp/germany-europe-network.xml.gz\
 		 --input-crs $(CRS)\
@@ -104,7 +102,7 @@ input/plans-completeSmallScaleCommercialTraffic.xml.gz:
 
 	mv output/commercialTraffic/$(notdir $@) $@
 
-input/$V/$N-$V-25pct.plans-initial.xml.gz: input/freight-trips.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$V/$N-$V-transitSchedule.xml.gz
+input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz input/plans-completeSmallScaleCommercialTraffic.xml.gz input/$V/$N-$V-transitSchedule.xml.gz
 	java -jar $(JAR) prepare trajectory-to-plans\
     	--name population --sample-size 0.25\
 		--max-typical-duration 0\

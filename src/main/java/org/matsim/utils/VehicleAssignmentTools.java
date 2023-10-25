@@ -13,7 +13,7 @@ import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.path.VrpPathWithTravelData;
 import org.matsim.contrib.dvrp.path.VrpPaths;
 import org.matsim.contrib.dvrp.schedule.Schedule;
-import org.matsim.core.router.FastAStarEuclideanFactory;
+import org.matsim.core.router.AStarEuclideanFactory;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -34,7 +34,7 @@ public final class VehicleAssignmentTools {
 		this.travelTime = travelTime;
 		this.taskFactory = taskFactory;
 		stopDuration = drtCfg.stopDuration;
-		leastCostPathCalculator = new FastAStarEuclideanFactory().createPathCalculator(network, travelDisutility,
+		leastCostPathCalculator = new AStarEuclideanFactory().createPathCalculator(network, travelDisutility,
 				travelTime);
 	}
 
