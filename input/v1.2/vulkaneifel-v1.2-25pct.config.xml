@@ -109,17 +109,6 @@
 			<param name="subpopulation" value="person"/>
 			<param name="weight" value="0.1"/>
 		</parameterset>
-
-		<parameterset type="strategysettings">
-			<param name="strategyName" value="ChangeExpBeta"/>
-			<param name="subpopulation" value="freight"/>
-			<param name="weight" value="0.95"/>
-		</parameterset>
-		<parameterset type="strategysettings">
-			<param name="strategyName" value="ReRoute"/>
-			<param name="subpopulation" value="freight"/>
-			<param name="weight" value="0.05"/>
-		</parameterset>
 	</module>
 
 	<module name="subtourModeChoice">

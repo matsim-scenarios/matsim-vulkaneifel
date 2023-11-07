@@ -9,13 +9,17 @@ import org.matsim.application.prepare.population.*;
 import org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs;
 import org.matsim.contrib.vsp.scenario.SnzActivities;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.groups.ReplanningConfigGroup;
 import org.matsim.core.config.groups.RoutingConfigGroup;
 import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.prepare.*;
 import org.matsim.simwrapper.SimWrapperModule;
 import org.matsim.smallScaleCommercialTrafficGeneration.GenerateSmallScaleCommercialTrafficDemand;
 import picocli.CommandLine;
+
+import java.util.List;
 
 @CommandLine.Command(header = ":: Open Vulkaneifel Scenario ::", version = RunVulkaneifelScenario.VERSION)
 @MATSimApplication.Prepare({
@@ -49,6 +53,21 @@ public class RunVulkaneifelScenario extends MATSimApplication {
 		config.scoring().addActivityParams(new ScoringConfigGroup.ActivityParams("service").setTypicalDuration(3600));
 		config.scoring().addActivityParams(new ScoringConfigGroup.ActivityParams("commercial_start").setTypicalDuration(3600));
 		config.scoring().addActivityParams(new ScoringConfigGroup.ActivityParams("commercial_end").setTypicalDuration(3600));
+
+		for (String subpopulation : List.of("freight", "goodsTraffic", "commercialPersonTraffic", "commercialPersonTraffic_service")) {
+			config.replanning().addStrategySettings(
+				new ReplanningConfigGroup.StrategySettings()
+					.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.ChangeExpBeta)
+					.setWeight(0.95)
+					.setSubpopulation(subpopulation)
+			);
+			config.replanning().addStrategySettings(
+				new ReplanningConfigGroup.StrategySettings()
+					.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.ReRoute)
+					.setWeight(0.05)
+					.setSubpopulation(subpopulation)
+			);
+		}
 
 		config.controller().setOutputDirectory(sample.adjustName(config.controller().getOutputDirectory()));
 		config.plans().setInputFile(sample.adjustName(config.plans().getInputFile()));
