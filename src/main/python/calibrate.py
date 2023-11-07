@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-
-import pandas as pd
 import geopandas as gpd
+import os
+import pandas as pd
 
 try:
     from matsim import calibration
 except ImportError:
     import calibration
 
-#%%
+# %%
 
 if os.path.exists("mid.csv"):
     srv = pd.read_csv("mid.csv")
@@ -26,7 +25,7 @@ if os.path.exists("mid.csv"):
 
     adj.to_csv("mid_adj.csv", index=False)
 
-#%%
+# %%
 
 modes = ["walk", "car", "ride", "pt", "bike"]
 fixed_mode = "walk"
@@ -41,12 +40,13 @@ initial = {
 target = {
     "walk": 0.172,
     "bike": 0.069,
-    "pt":  0.05,
+    "pt": 0.05,
     "car": 0.56,
     "ride": 0.149
 }
 
 shp = gpd.read_file("../input/dilutionArea/dilutionArea.shp").set_crs("EPSG:25832")
+
 
 def filter_persons(persons):
     persons = gpd.GeoDataFrame(persons, geometry=gpd.points_from_xy(persons.home_x, persons.home_y))
@@ -57,22 +57,23 @@ def filter_persons(persons):
 
     return df
 
+
 def filter_modes(df):
     return df[df.main_mode.isin(modes)]
 
 
 # FIXME: Adjust paths and config
 
-study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.2-SNAPSHOT.jar",
-                                        "../input/v1.2/vulkaneifel-v1.2-25pct.config.xml",
-                                        modes, target, 
-                                        initial_asc=initial,
-                                        args="--25pct --config:TimeAllocationMutator.mutationRange=900",
-                                        jvm_args="-Xmx60G -Xmx60G -XX:+AlwaysPreTouch -XX:+UseParallelGC",
-                                        lr=calibration.linear_lr_scheduler(start=0.5, interval=6),
-                                        person_filter=filter_persons, map_trips=filter_modes, chain_runs=calibration.default_chain_scheduler)
+study, obj = calibration.create_mode_share_study("calib", "../matsim-vulkaneifel-1.2-SNAPSHOT-6056dd8.jar",
+                                                 "../input/v1.2/vulkaneifel-v1.2-25pct.config.xml",
+                                                 modes, target,
+                                                 initial_asc=initial,
+                                                 args="--25pct --config:TimeAllocationMutator.mutationRange=900",
+                                                 jvm_args="-Xmx60G -Xmx60G -XX:+AlwaysPreTouch -XX:+UseParallelGC",
+                                                 lr=calibration.linear_lr_scheduler(start=0.5, interval=8),
+                                                 transform_persons=filter_persons, transform_trips=filter_modes,
+                                                 chain_runs=calibration.default_chain_scheduler)
 
-
-#%%
+# %%
 
 study.optimize(obj, 10)
