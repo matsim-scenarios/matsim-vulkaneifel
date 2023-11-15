@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: MATSim Open Vulkaneifel Scenario
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Christian
+    family-names: Rakow
+    email: rakow@vsp.tu-berlin.de
+    affiliation: Technische Universität Berlin
+    orcid: 'https://orcid.org/0000-0003-3760-2243'
+  - given-names: Ricardo
+    family-names: Ewert
+    affiliation: Technische Universität Berlin
+    orcid: 'https://orcid.org/0000-0002-6973-3099'
+
+url: "https://github.com/matsim-scenarios/matsim-vulkaneifel"
+date-released: 2023-11-15
+year: 2023
+version: 1.2
+license: AGPL-3.0
