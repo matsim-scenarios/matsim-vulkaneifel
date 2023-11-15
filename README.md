@@ -56,8 +56,8 @@ or on Windows:
 mvnw.cmd clean package
 ```
 
-This will download all necessary dependencies (it might take a while the first time it is run) and create a file `matsim-vulkaneifel-1.1-SNAPSHOT.jar` in the top directory. This jar-file can either be double-clicked to start the MATSim GUI, or executed with Java on the command line:
+This will download all necessary dependencies (it might take a while the first time it is run) and create a file `matsim-vulkaneifel-[version].jar` in the top directory. This jar-file can be executed with Java on the command line:
 
 ```sh
-java -jar matsim-vulkaneifel-1.1-SNAPSHOT.jar
+java -jar matsim-vulkaneifel-*.jar
 ```

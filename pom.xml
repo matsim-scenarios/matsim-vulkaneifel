@@ -13,7 +13,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.matsim-scenarios</groupId>
 	<artifactId>matsim-vulkaneifel</artifactId>
-	<version>1.2-SNAPSHOT</version>
+	<version>1.2</version>
 
 	<name>MATSim Vulkaneifel Model</name>
 	<description>A transport model of the district of Vulkaneifel and its surroundings</description>
