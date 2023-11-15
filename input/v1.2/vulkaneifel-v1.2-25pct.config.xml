@@ -62,7 +62,7 @@
 			<param name="mapCenter" value="6.9,50.25" />
 			<param name="mapZoomLevel" value="7.3" />
 			<param name="sampleSize" value="0.25" />
-			<param name="shp" value="./dilutionArea/dilutionArea.shp" />
+			<param name="shp" value="../dilutionArea/dilutionArea.shp" />
 		</parameterset>
 	</module>
 
