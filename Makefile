@@ -161,4 +161,10 @@ input/$V/$N-$V-25pct.plans-initial.xml.gz: input/plans-longHaulFreight.xml.gz in
         --samples 0.01\
         --samples 0.001\
 
+input/$V/$N-$V-25pct.plans.xml.gz:
+	$(sc) prepare clean-population\
+	 --plans calibration/runs/009/009.output_plans.xml.gz\
+	 --remove-unselected-plans\
+	 --output $@
+
 prepare: input/$V/$N-$V-25pct.plans-initial.xml.gz input/$V/$N-$V-transitSchedule.xml.gz

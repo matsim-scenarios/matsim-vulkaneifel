@@ -9,7 +9,7 @@
 		<param name="lastIteration" value="500"/>
 		<param name="overwriteFiles" value="failIfDirectoryExists"/>
 		<param name="runId" value="vulkaneifel-v1.2-25pct"/>
-		<param name="outputDirectory" value="./output/output-vulkaneifel-v1.2-25pct"/>
+		<param name="outputDirectory" value="./output/vulkaneifel-v1.2-25pct"/>
 		<param name="writeEventsInterval" value="100"/>
 		<param name="writePlansInterval" value="100"/>
 		<param name="enableLinkToLinkRouting" value="false"/>
@@ -23,13 +23,13 @@
 	</module>
 
 	<module name="network">
-		<param name="inputNetworkFile" value="./vulkaneifel-v1.2-network-with-pt.xml.gz"/>
+		<param name="inputNetworkFile" value="https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.2/input/vulkaneifel-v1.2-network-with-pt.xml.gz"/>
 		<param name="laneDefinitionsFile" value="null"/>
 	</module>
 
 	<module name="plans">
 		<param name="inputPlansFile"
-		       value="./vulkaneifel-v1.2-25pct.plans-initial.xml.gz"/>
+		       value="https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.2/input/vulkaneifel-v1.2-25pct.plans-initial.xml.gz"/>
 		<param name="removingUnnecessaryPlanAttributes" value="true"/>
 	</module>
 
@@ -39,9 +39,9 @@
 
 	<module name="transit">
 		<param name="transitScheduleFile"
-		       value="./vulkaneifel-v1.2-transitSchedule.xml.gz"/>
+		       value="https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.2/input/vulkaneifel-v1.2-transitSchedule.xml.gz"/>
 		<param name="vehiclesFile"
-		       value="./vulkaneifel-v1.2-transitVehicles.xml.gz"/>
+		       value="https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/vulkaneifel/v1.2/input/vulkaneifel-v1.2-transitVehicles.xml.gz"/>
 		<param name="useTransit" value="true"/>
 	</module>
 
@@ -53,6 +53,16 @@
 			<param name="beelineDistanceFactor" value="1.3"/>
 			<param name="mode" value="walk"/>
 			<param name="teleportedModeSpeed" value="1.0555556"/>
+		</parameterset>
+	</module>
+
+	<module name="simwrapper" >
+		<parameterset type="params" >
+			<param name="context" value="" />
+			<param name="mapCenter" value="6.9,50.25" />
+			<param name="mapZoomLevel" value="7.3" />
+			<param name="sampleSize" value="0.25" />
+			<param name="shp" value="./dilutionArea/dilutionArea.shp" />
 		</parameterset>
 	</module>
 
