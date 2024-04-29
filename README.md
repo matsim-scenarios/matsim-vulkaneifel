@@ -61,3 +61,12 @@ This will download all necessary dependencies (it might take a while the first t
 ```sh
 java -jar matsim-vulkaneifel-*.jar
 ```
+---
+## More information
+
+For more information about MATSim, see here: https://www.matsim.org/
+
+## Internal documentation
+
+Internal documentation can be found here:
+https://docs.google.com/document/d/1DhfbLueniRQm_e-btFQKUF38TZ39aQXVFxrraEU_JM0/edit?usp=drive_link 
